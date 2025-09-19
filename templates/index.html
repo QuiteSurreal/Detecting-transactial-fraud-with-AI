@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fraud Detection App</title>
+</head>
+<body>
+  <h2>Upload CSV for Fraud Detection</h2>
+  <form id="upload-form" enctype="multipart/form-data" method="post" action="/predict">
+    <label>Select model:</label>
+    <select name="model_name">
+      <option value="random_forest_v1">Random Forest</option>
+      <option value="xgboost_v2">XGBoost</option>
+      <option value="isolation_forest">Isolation Forest</option>
+    </select>
+    <br><br>
+    <input type="file" name="file" accept=".csv" required>
+    <br><br>
+    <button type="submit">Run Prediction</button>
+  </form>
+</body>
+</html>
