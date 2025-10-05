@@ -1,14 +1,14 @@
 {
-  "random_forest_v1": {
-    "path": "app/models/random_forest_v1.pkl",
-    "description": "Random Forest with 100 trees"
-  },
-  "xgboost_v2": {
-    "path": "app/models/xgboost_v2.pkl",
+  "xgboost without SMOTE": {
+    "path": "app/models/XGB without SMOTE.sav",
     "description": "Optimized XGBoost with tuned params"
   },
-  "isolation_forest": {
-    "path": "app/models/isolation_forest.pkl",
-    "description": "Unsupervised anomaly detection"
+  "xgboost with SMOTE": {
+    "path": "app/models/xgboost_v2.sav",
+    "description": "Optimized XGBoost with tuned params"
+  },
+  "Ensenble": {
+    "path": "app/models/isolation_forest.sav",
+    "description": "Ensemble made up from Random Forest and SMOTE XGB"
   }
 }
