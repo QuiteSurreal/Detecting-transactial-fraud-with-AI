@@ -4,11 +4,11 @@
     "description": "Optimized XGBoost with tuned params"
   },
   "xgboost with SMOTE": {
-    "path": "app/models/xgboost_v2.sav",
+    "path": "app/models/XGB with SMOTE.sav",
     "description": "Optimized XGBoost with tuned params"
   },
   "Ensenble": {
-    "path": "app/models/isolation_forest.sav",
+    "path": "app/models/Ensemble.sav",
     "description": "Ensemble made up from Random Forest and SMOTE XGB"
   }
 }
