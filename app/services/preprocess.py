@@ -19,26 +19,35 @@ EXPECTED_SCHEMA = {
     "oldbalanceDest": float,
     "newbalanceDest": float,
     "isFraud": int,
-    "isFlaggedFraud": int
 }
 
 def preprocessFile(data, modelName, mode):
-    print("hum")
-    dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
+    try:
+        dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
+    except Exception as e:
+        return 0, [f"Failed to read CSV file: {str(e)}"], []
+    
     df = dfRaw.copy()
 
-    print("whug")
+    if ('isFlaggedFraud' in df):
+        df = df.drop('isFlaggedFraud', axis=1)
 
     errors = validateData(df)
 
     if (errors):
         return 0, errors, []
 
-    df = preprocess(df)
+    try:
+        df = preprocess(df)
+    except Exception as e:
+        return 0, [f"Error preprocessing data: {str(e)}"], []
     
     print("prep done")
 
-    result = pred.runPrediction(modelName, df)
+    try:
+        result = pred.runPrediction(modelName, df)
+    except Exception as e:
+        return 0, [f"Error running prediction: {str(e)}"], []
 
     dfRaw['prediction'] = result
     fraud_count = int((dfRaw["prediction"] == 1).sum())
@@ -67,7 +76,6 @@ def preprocessJSON(request, mode):
 def preprocess(df: pd.DataFrame):
     
     df = df.drop('isFraud', axis=1)
-    df = df.drop('isFlaggedFraud', axis=1)
     df['balanceDiffDest'] = df['newbalanceDest'] - df['oldbalanceDest']
 
     for col in df.select_dtypes(include=['object']).columns:
@@ -81,6 +89,8 @@ def preprocess(df: pd.DataFrame):
 
 def validateData(data: pd.DataFrame):
     errors = []
+
+    print("dod youd ided lid bod")
 
     for col in EXPECTED_SCHEMA:
         if col not in data.columns:

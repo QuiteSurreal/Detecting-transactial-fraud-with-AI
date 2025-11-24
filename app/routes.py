@@ -37,6 +37,10 @@ def getTasksPage():
     with open("templates/tasks.html") as f:
         return HTMLResponse(content=f.read())
 
+@app.get("/taskDetails", response_class=HTMLResponse)
+def getTaskDetails():
+    with open("templates/taskDetails.html") as f:
+        return HTMLResponse(content=f.read())
     
 @app.get("/models")
 def getModels():
@@ -45,9 +49,15 @@ def getModels():
     return MODEL_REGISTRY
 
 @app.get("/tasks/data")
-def getTasksData():
+def getTasksData(id: str = None):
     with open("app/utils/tasks.json") as f:
         DATA = json.load(f)
+    
+    if id:
+        for task in DATA:
+            if task['id'] == id:
+                return task
+        raise HTTPException(status_code=404, detail="Task not found")
     return DATA
 
 @app.post("/upgrade", response_class=HTMLResponse)
