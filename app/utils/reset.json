@@ -1,0 +1,46 @@
+[
+    {
+        "id": "Total",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
+        "confusion": [[0, 0], [0, 0]],
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
+    },
+    {
+        "id": "xgboost without SMOTE",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
+        "confusion": [[0, 0], [0, 0]],
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
+    },
+    {
+        "id": "xgboost with SMOTE",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
+        "confusion": [[0, 0], [0, 0]],
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
+    },
+    {
+        "id": "Ensenble",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
+        "confusion": [[0, 0], [0, 0]],
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
+    }
+]

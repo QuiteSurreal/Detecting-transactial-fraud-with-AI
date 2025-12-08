@@ -19,3 +19,81 @@ body.reduced_opacity {
     background-blend-mode: lighten;
 }
 
+.task-row {
+  cursor: pointer;
+}
+.task-row:hover {
+  background-color: #f5f5f5;
+}
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+}
+.status-badge.pending {
+  background-color: #ffc107;
+  color: black;
+}
+.status-badge.success {
+  background-color: #28a745;
+  color: white;
+}
+.status-badge.fail {
+  background-color: #dc3545;
+  color: white;
+}
+
+
+.stats-card {
+  border-left: 5px solid #007bff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stats-card .card-body {
+  padding: 1.5rem;
+}
+
+.stats-card .card-title {
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.stats-card .card-text {
+  color: #007bff;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.metrics-card {
+  border-top: 3px solid #17a2b8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.metrics-card .card-body {
+  padding: 1.5rem;
+}
+
+.metrics-card .card-title {
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.metric-value {
+  color: #17a2b8;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.metrics-card .text-muted {
+  font-size: 0.8rem;
+}

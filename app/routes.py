@@ -3,12 +3,13 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
 import joblib
-import os, json
+import json
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from io import StringIO
 
 from app.services import preprocess as prep
+from app.services import write as wr
 
 app = FastAPI()
 
@@ -41,6 +42,17 @@ def getTasksPage():
 def getTaskDetails():
     with open("templates/taskDetails.html") as f:
         return HTMLResponse(content=f.read())
+    
+@app.get("/stats", response_class=HTMLResponse)
+def getStats():
+    with open("templates/stats.html") as f:
+        return HTMLResponse(content=f.read())
+    
+@app.get("/statsData")
+def getStatsData():
+    with open("app/utils/previous_data.json") as f:
+        STATISTICS_ALL = json.load(f)
+    return STATISTICS_ALL
     
 @app.get("/models")
 def getModels():
@@ -78,7 +90,7 @@ async def predictFile(background_tasks: BackgroundTasks, file: UploadFile, selec
         "status": status,
         "desc": "none"
     }
-    writeJSON(entry, "app/utils/tasks.json")
+    wr.writeJSON(entry, "app/utils/tasks.json")
     background_tasks.add_task(runPreprocessFileJob, task_id, data, selected_model, 1)
     
     return RedirectResponse(url="/", status_code=303)
@@ -94,7 +106,7 @@ def predictJSON(background_tasks: BackgroundTasks, request: PredictRequest):
         "status": status,
         "desc": "none"
     }
-    writeJSON(entry, "app/utils/tasks.json")
+    wr.writeJSON(entry, "app/utils/tasks.json")
     background_tasks.add_task(runPreprocessJSONJob, task_id, request, 1)
     
     return {"task_id": task_id}
@@ -105,59 +117,15 @@ def get_status(task_id: str):
 
 def runPreprocessFileJob(task_id: str, file: bytes, selected_model: str, mode: int):
     data = StringIO(file.decode("utf-8"))
-    success, result, frauds = prep.preprocessFile(data, selected_model, mode)
-    writeTaskResult(task_id, success, result, frauds)
+    success, result, frauds, stats = prep.preprocessFile(data, selected_model, mode)
+    wr.writeTaskResult(tasks, task_id, success, result, frauds)
+    wr.writeStatsResult(selected_model, stats)
 
 def runPreprocessJSONJob(task_id: str, request: PredictRequest, mode: int):
     success, result = prep.preprocessJSON(request, mode)
-    writeTaskResult(task_id, success, result, [])
+    wr.writeTaskResult(tasks, task_id, success, result, [])
 
-def writeTaskResult(task_id, success, result, frauds):
-    print(result)
-    if success:
-        tasks[task_id]['status'] = "SUCCESS"
-        tasks[task_id]['desc'] = result
 
-        entry = {
-        "id": task_id,
-        "status": "SUCCESS",
-        "desc": result,
-        "frauds": frauds
-        }
-
-    else:
-        tasks[task_id]['status'] = "FAIL"
-        tasks[task_id]['desc'] = result
-
-        entry = {
-        "id": task_id,
-        "status": "FAIL",
-        "desc": result
-        }
-    
-    editJSON(task_id, entry, "app/utils/tasks.json")
-    print(entry)
-
-def writeJSON(new_data, filename):
-    with open(filename, 'r+') as file:
-        file_data = json.load(file)
-        file_data.append(new_data)
-        file.seek(0)
-        json.dump(file_data, file, indent=4)
-
-#replace at the same pos
-def editJSON(id, new_data, filename):
-    with open(filename, 'r+') as file:
-        file_data = json.load(file)
-
-        for i, obj in enumerate(file_data):
-            if obj['id'] == id:
-                file_data[i] = new_data
-                break
-            
-        file.seek(0)
-        file.truncate()
-        json.dump(file_data, file, indent=4)
 
 # Purge tasks.json, only for the dev time
 with open("app/utils/tasks.json", "w") as f:

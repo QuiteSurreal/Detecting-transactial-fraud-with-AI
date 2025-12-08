@@ -3,7 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
-
+from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score, f1_score
 
 from app.services import predict as pred
 from app.services import train as train
@@ -29,27 +29,28 @@ def preprocessFile(data, modelName, mode):
     
     df = dfRaw.copy()
 
-    if ('isFlaggedFraud' in df):
-        df = df.drop('isFlaggedFraud', axis=1)
-
     errors = validateData(df)
 
     if (errors):
         return 0, errors, []
+    
+    #!! CHECK IF THIS IS HERE AND PLAN ACCORDINGLY
+    y_true = None
+    if ('isFraud' in df):
+        y_true = df['isFraud'].values
+        df = df.drop('isFraud', axis=1)
 
     try:
         df = preprocess(df)
     except Exception as e:
         return 0, [f"Error preprocessing data: {str(e)}"], []
-    
-    print("prep done")
 
     try:
-        result = pred.runPrediction(modelName, df)
+        y_pred = pred.runPrediction(modelName, df)
     except Exception as e:
         return 0, [f"Error running prediction: {str(e)}"], []
 
-    dfRaw['prediction'] = result
+    dfRaw['prediction'] = y_pred
     fraud_count = int((dfRaw["prediction"] == 1).sum())
     legit_count = int((dfRaw["prediction"] == 0).sum())
 
@@ -61,12 +62,22 @@ def preprocessFile(data, modelName, mode):
         "legitimate": legit_count
     }
 
-    # Save only frauds for inspection
+    stats = None
+    if (y_true is not None):
+        cm = confusion_matrix(y_true, y_pred).tolist()
+        accuracy = accuracy_score(y_true, y_pred)
+        precision = precision_score(y_true, y_pred)
+        recall = recall_score(y_true, y_pred)
+        f1 = f1_score(y_true, y_pred)
+        stats = [
+            len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1, stats
+        ]
 
 
-    print("result got")
+    return 1, desc, frauds.to_dict(orient='records'), stats
+    
 
-    return 1, desc, frauds.to_dict(orient='records')
+
 
 def preprocessJSON(request, mode):
     import time
@@ -74,8 +85,10 @@ def preprocessJSON(request, mode):
     return 1, "fraudulent: 10, rows: 1000"
 
 def preprocess(df: pd.DataFrame):
-    
-    df = df.drop('isFraud', axis=1)
+
+    if ('isFlaggedFraud' in df):
+        df = df.drop('isFlaggedFraud', axis=1)
+
     df['balanceDiffDest'] = df['newbalanceDest'] - df['oldbalanceDest']
 
     for col in df.select_dtypes(include=['object']).columns:
@@ -89,8 +102,6 @@ def preprocess(df: pd.DataFrame):
 
 def validateData(data: pd.DataFrame):
     errors = []
-
-    print("dod youd ided lid bod")
 
     for col in EXPECTED_SCHEMA:
         if col not in data.columns:

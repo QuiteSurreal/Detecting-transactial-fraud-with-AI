@@ -1,6 +1,4 @@
 
-
-
 fetch('/models')
       .then(response => response.json())
       .then(models => {
