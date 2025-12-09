@@ -112,7 +112,6 @@ function loadStatsData() {
       }
       
       
-      // Construct image path - adjust based on where you're generating the images
       const imagePath = `../resources/temp/cm_${modelName}.png?t=${new Date().getTime()}`;
       
       
@@ -122,7 +121,6 @@ function loadStatsData() {
         img.style.display = 'block';
       };
       img.onerror = function() {
-        // Keep placeholder visible if image fails to load
         placeholder.style.display = 'flex';
         img.style.display = 'none';
       };

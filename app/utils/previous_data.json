@@ -1,37 +1,37 @@
 [
     {
         "id": "Total",
-        "records": 300000,
-        "frauds": 333,
-        "legit": 299667,
+        "records": 600000,
+        "frauds": 804,
+        "legit": 599196,
         "confusion": [
             [
-                299649,
-                3
+                599156,
+                148
             ],
             [
-                18,
-                330
+                40,
+                656
             ]
         ],
-        "acc": 0.999,
-        "prec": 0.99,
-        "rec": 0.948,
-        "F1": 0.969
+        "acc": 0.998,
+        "prec": 0.895,
+        "rec": 0.942,
+        "F1": 0.904
     },
     {
         "id": "xgboost without SMOTE",
-        "records": 300000,
-        "frauds": 333,
-        "legit": 299667,
+        "records": 500000,
+        "frauds": 555,
+        "legit": 499445,
         "confusion": [
             [
-                299649,
-                3
+                499415,
+                5
             ],
             [
-                18,
-                330
+                30,
+                550
             ]
         ],
         "acc": 0.999,
@@ -41,23 +41,23 @@
     },
     {
         "id": "xgboost with SMOTE",
-        "records": 0,
-        "frauds": 0,
-        "legit": 0,
+        "records": 100000,
+        "frauds": 249,
+        "legit": 99751,
         "confusion": [
             [
-                0,
-                0
+                99741,
+                143
             ],
             [
-                0,
-                0
+                10,
+                106
             ]
         ],
-        "acc": 0,
-        "prec": 0,
-        "rec": 0,
-        "F1": 0
+        "acc": 0.998,
+        "prec": 0.425,
+        "rec": 0.913,
+        "F1": 0.58
     },
     {
         "id": "Ensenble",
