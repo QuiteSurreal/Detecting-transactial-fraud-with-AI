@@ -25,14 +25,14 @@ def preprocessFile(data, modelName, mode):
     try:
         dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
     except Exception as e:
-        return 0, [f"Failed to read CSV file: {str(e)}"], []
+        return 0, [f"Failed to read CSV file: {str(e)}"], [], None
     
     df = dfRaw.copy()
 
     errors = validateData(df)
 
     if (errors):
-        return 0, errors, []
+        return 0, errors, [], None
     
     #!! CHECK IF THIS IS HERE AND PLAN ACCORDINGLY
     y_true = None
@@ -43,12 +43,12 @@ def preprocessFile(data, modelName, mode):
     try:
         df = preprocess(df)
     except Exception as e:
-        return 0, [f"Error preprocessing data: {str(e)}"], []
+        return 0, [f"Error preprocessing data: {str(e)}"], [], None
 
     try:
         y_pred = pred.runPrediction(modelName, df)
     except Exception as e:
-        return 0, [f"Error running prediction: {str(e)}"], []
+        return 0, [f"Error running prediction: {str(e)}"], [], None
 
     dfRaw['prediction'] = y_pred
     fraud_count = int((dfRaw["prediction"] == 1).sum())
@@ -72,7 +72,6 @@ def preprocessFile(data, modelName, mode):
         stats = [
             len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1, stats
         ]
-
 
     return 1, desc, frauds.to_dict(orient='records'), stats
     

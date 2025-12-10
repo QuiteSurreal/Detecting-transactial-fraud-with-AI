@@ -60,6 +60,7 @@ def getModels():
         MODEL_REGISTRY = json.load(f)
     return MODEL_REGISTRY
 
+#MAKE IT SO THAT THERE IS A API COMPATIBLE VERS OF THIS, LIKE WITH STATUS
 @app.get("/tasks/data")
 def getTasksData(id: str = None):
     with open("app/utils/tasks.json") as f:

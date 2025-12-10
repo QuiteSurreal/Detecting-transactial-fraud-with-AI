@@ -1,37 +1,37 @@
 [
     {
         "id": "Total",
-        "records": 600000,
-        "frauds": 804,
-        "legit": 599196,
+        "records": 1100000,
+        "frauds": 1635,
+        "legit": 1098365,
         "confusion": [
             [
-                599156,
-                148
+                1098287,
+                437
             ],
             [
-                40,
-                656
+                78,
+                1198
             ]
         ],
         "acc": 0.998,
-        "prec": 0.895,
-        "rec": 0.942,
-        "F1": 0.904
+        "prec": 0.833,
+        "rec": 0.937,
+        "F1": 0.86
     },
     {
         "id": "xgboost without SMOTE",
-        "records": 500000,
-        "frauds": 555,
-        "legit": 499445,
+        "records": 800000,
+        "frauds": 888,
+        "legit": 799112,
         "confusion": [
             [
-                499415,
-                5
+                799064,
+                8
             ],
             [
-                30,
-                550
+                48,
+                880
             ]
         ],
         "acc": 0.999,
@@ -41,17 +41,17 @@
     },
     {
         "id": "xgboost with SMOTE",
-        "records": 100000,
-        "frauds": 249,
-        "legit": 99751,
+        "records": 300000,
+        "frauds": 747,
+        "legit": 299253,
         "confusion": [
             [
-                99741,
-                143
+                299223,
+                429
             ],
             [
-                10,
-                106
+                30,
+                318
             ]
         ],
         "acc": 0.998,
