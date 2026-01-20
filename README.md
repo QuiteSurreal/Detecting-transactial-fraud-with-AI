@@ -7,7 +7,6 @@ This project is designed as a **simulation of a remote fraud-detection service**
 **Disclaimer:**
 This project is still being developed, so some features might not work. I will be providing a full usage section later.
 
----
 
 ## Features
 
@@ -21,7 +20,6 @@ This project is still being developed, so some features might not work. I will b
 * Optional evaluation metrics (confusion matrix, precision, recall, F1)
 * Frontend-ready responses (HTML-friendly summaries)
 
----
 
 ## Machine Learning
 
@@ -35,6 +33,5 @@ Supported capabilities:
 * Model selection at request time
 * Binary fraud classification (`is_fraud`)
 
----
 
 
