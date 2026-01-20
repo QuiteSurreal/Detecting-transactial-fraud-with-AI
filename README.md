@@ -34,4 +34,12 @@ Supported capabilities:
 * Binary fraud classification (`is_fraud`)
 
 
+## Screenshots
+<img width="1072" height="675" alt="Opera Pillanatfelvétel_2026-01-21_004341_localhost" src="https://github.com/user-attachments/assets/e5d3e5b6-0a75-4c8c-8374-bd43e9d46345" />
+
+--
+
+<img width="1145" height="761" alt="Opera Pillanatfelvétel_2026-01-21_004353_localhost" src="https://github.com/user-attachments/assets/3753434e-463a-4b8f-9dea-24d8c2c8da97" />
+
+--
 
