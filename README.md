@@ -4,6 +4,8 @@ A **FastAPI-based machine learning service** for transaction fraud detection. Th
 
 This project is designed as a **simulation of a remote fraud-detection service**, similar to what a financial institution might deploy behind an API.
 
+The process of making the models can right now be found in factory/AI.
+
 **Disclaimer:**
 This project is still being developed, so some features might not work. I will be providing a full usage section later.
 
@@ -18,7 +20,7 @@ This project is still being developed, so some features might not work. I will b
 * Task tracking with persistent JSON storage
 * Fraud statistics (total records, frauds detected, legitimate entries)
 * Optional evaluation metrics (confusion matrix, precision, recall, F1)
-* Frontend-ready responses (HTML-friendly summaries)
+* Frontend-ready responses
 
 
 ## Machine Learning
