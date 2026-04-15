@@ -5,7 +5,9 @@ function getTaskId() {
 
 function loadTaskDetails() {
     const taskId = getTaskId();
-    fetch(`/tasks/data?id=${taskId}`)
+    const url = taskId ? `/tasks/data?task_id=${encodeURIComponent(taskId)}` : '/tasks/data';
+    
+    fetch(url)
       .then(response => response.json())
       .then(data => {
         const detailsDiv = document.getElementById('task-details');

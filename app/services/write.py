@@ -7,11 +7,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def writeTaskResult(tasks, task_id, success, result, frauds):
+def writeTaskResult(task_id, success, result, frauds):
     if success:
-        tasks[task_id]['status'] = "SUCCESS"
-        tasks[task_id]['desc'] = result
-
         entry = {
         "id": task_id,
         "status": "SUCCESS",
@@ -20,9 +17,23 @@ def writeTaskResult(tasks, task_id, success, result, frauds):
         }
 
     else:
-        tasks[task_id]['status'] = "FAIL"
-        tasks[task_id]['desc'] = result
+        entry = {
+        "id": task_id,
+        "status": "FAIL",
+        "desc": result
+        }
+    
+    editJSON(task_id, entry, "app/utils/tasks.json")
 
+def writeTrainResult(task_id, success, result):
+    if success:
+        entry = {
+        "id": task_id,
+        "status": "SUCCESS",
+        "desc": result,
+        }
+
+    else:
         entry = {
         "id": task_id,
         "status": "FAIL",
@@ -95,6 +106,25 @@ def writeStatsResult(model_name, stats):
                 }
                 editJSON(model_name, entry, "app/utils/previous_data.json")
                 break
+        else:
+            # Model not found, create new entry
+            try:
+                t = threading.Thread(target=makeCM, args=(stats[3], model_name), daemon=True)
+                t.start()
+            except Exception:
+                path = makeCM(stats[3], model_name)
+            entry = {
+                "id": model_name,
+                "records": stats[0],
+                "frauds": stats[1],
+                "legit": stats[2],
+                "confusion": stats[3],
+                "acc": math.floor(stats[4] * 1000) / 1000,
+                "prec": math.floor(stats[5] * 1000) / 1000,
+                "rec": math.floor(stats[6] * 1000) / 1000,
+                "F1": math.floor(stats[7] * 1000) / 1000
+            }
+            writeJSON(entry, "app/utils/previous_data.json")
         
 
 def makeCM(conf, name):
@@ -131,3 +161,20 @@ def editJSON(id, new_data, filename):
         file.seek(0)
         file.truncate()
         json.dump(file_data, file, indent=4)
+
+def updateModelRegistry(model_name, model_path, description):
+    
+
+    # Load existing registry
+    with open("app/utils/model_registry.json", 'r') as f:
+        registry = json.load(f)
+
+    # Add new model
+    registry[model_name] = {
+        "path": model_path,
+        "description": description
+    }
+
+    # Save updated registry
+    with open("app/utils/model_registry.json", 'w') as f:
+        json.dump(registry, f, indent=2)

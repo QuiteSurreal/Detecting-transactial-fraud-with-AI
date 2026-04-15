@@ -33,17 +33,16 @@ def preprocessFile(data, modelName, mode):
 
     if (errors):
         return 0, errors, [], None
-    
-    #!! CHECK IF THIS IS HERE AND PLAN ACCORDINGLY
-    y_true = None
-    if ('isFraud' in df):
-        y_true = df['isFraud'].values
-        df = df.drop('isFraud', axis=1)
 
     try:
         df = preprocess(df)
     except Exception as e:
         return 0, [f"Error preprocessing data: {str(e)}"], [], None
+    
+    y_true = None
+    if ('isFraud' in df):
+        y_true = df['isFraud'].values
+        df = df.drop('isFraud', axis=1)
 
     try:
         y_pred = pred.runPrediction(modelName, df)
@@ -95,6 +94,8 @@ def preprocess(df: pd.DataFrame):
         df[col] = LabelEncoder().fit_transform(df[col])
 
     df = df.astype(float)
+
+    df.to_csv("preprocessed_input.csv", index=False)
 
     return df
 

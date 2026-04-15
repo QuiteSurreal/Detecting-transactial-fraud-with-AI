@@ -10,5 +10,21 @@
   "Ensenble": {
     "path": "app/models/Ensemble.sav",
     "description": "Ensemble made up from Random Forest and SMOTE XGB"
+  },
+  "w": {
+    "path": "app/models/w.sav",
+    "description": "Custom XGB model"
+  },
+  "dwa": {
+    "path": "app/models/dwa.sav",
+    "description": "Custom XGB model"
+  },
+  "daw": {
+    "path": "app/models/daw.sav",
+    "description": "Custom Ensemble model"
+  },
+  "dawgre": {
+    "path": "app/models/dawgre.sav",
+    "description": "Custom Ensemble model"
   }
 }

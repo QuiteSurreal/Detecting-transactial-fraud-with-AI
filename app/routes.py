@@ -7,13 +7,13 @@ import json
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from io import StringIO
+import uuid
 
 from app.services import preprocess as prep
 from app.services import write as wr
+from app.services import train
 
 app = FastAPI()
-
-tasks = {}
 
 class PredictRequest(BaseModel):
     selected_model: str
@@ -48,6 +48,11 @@ def getStats():
     with open("templates/stats.html") as f:
         return HTMLResponse(content=f.read())
     
+@app.get("/train", response_class=HTMLResponse)
+def getTrain():
+    with open("templates/train.html") as f:
+        return HTMLResponse(content=f.read())
+    
 @app.get("/statsData")
 def getStatsData():
     with open("app/utils/previous_data.json") as f:
@@ -60,15 +65,14 @@ def getModels():
         MODEL_REGISTRY = json.load(f)
     return MODEL_REGISTRY
 
-#MAKE IT SO THAT THERE IS A API COMPATIBLE VERS OF THIS, LIKE WITH STATUS
 @app.get("/tasks/data")
-def getTasksData(id: str = None):
+def getTasksData(task_id: str = None):
     with open("app/utils/tasks.json") as f:
         DATA = json.load(f)
     
-    if id:
+    if task_id:
         for task in DATA:
-            if task['id'] == id:
+            if task['id'] == task_id:
                 return task
         raise HTTPException(status_code=404, detail="Task not found")
     return DATA
@@ -81,14 +85,11 @@ def wo():
 
 @app.post("/predict/file")
 async def predictFile(background_tasks: BackgroundTasks, file: UploadFile, selected_model: str = Form(...)):
-    import uuid
     task_id = str(uuid.uuid4())
     data = await file.read()
-    status = "PENDING"
-    tasks[task_id] = {"status": status, "result": None}
     entry = {
         "id": task_id,
-        "status": status,
+        "status": "PENDING",
         "desc": "none"
     }
     wr.writeJSON(entry, "app/utils/tasks.json")
@@ -98,13 +99,10 @@ async def predictFile(background_tasks: BackgroundTasks, file: UploadFile, selec
 
 @app.post("/predict/json")
 def predictJSON(background_tasks: BackgroundTasks, request: PredictRequest):
-    import uuid
     task_id = str(uuid.uuid4())
-    status = "PENDING"
-    tasks[task_id] = {"status": status, "result": None}
     entry = {
         "id": task_id,
-        "status": status,
+        "status": "PENDING",
         "desc": "none"
     }
     wr.writeJSON(entry, "app/utils/tasks.json")
@@ -114,20 +112,52 @@ def predictJSON(background_tasks: BackgroundTasks, request: PredictRequest):
 
 @app.get("/status/{task_id}")
 def get_status(task_id: str):
-    return tasks.get(task_id, {"status": "UNKNOWN"})
+    with open("app/utils/tasks.json") as f:
+        DATA = json.load(f)
+    
+    if task_id:
+        for task in DATA:
+            if task['id'] == task_id:
+                return task['status']
+        raise HTTPException(status_code=404, detail="Task not found")
+    return DATA
+
+@app.post("/train")
+async def trainModel(background_tasks: BackgroundTasks, request_data: dict):
+    task_id = str(uuid.uuid4())
+    entry = {
+        "id": task_id,
+        "status": "PENDING",
+        "desc": "none"
+    }
+    wr.writeJSON(entry, "app/utils/tasks.json")
+    background_tasks.add_task(runTrainJob, task_id, request_data)
+    
+    return {"task_id": task_id}
+
+
+
+
 
 def runPreprocessFileJob(task_id: str, file: bytes, selected_model: str, mode: int):
     data = StringIO(file.decode("utf-8"))
     success, result, frauds, stats = prep.preprocessFile(data, selected_model, mode)
-    wr.writeTaskResult(tasks, task_id, success, result, frauds)
+    wr.writeTaskResult(task_id, success, result, frauds)
     wr.writeStatsResult(selected_model, stats)
 
 def runPreprocessJSONJob(task_id: str, request: PredictRequest, mode: int):
     success, result = prep.preprocessJSON(request, mode)
-    wr.writeTaskResult(tasks, task_id, success, result, [])
+    wr.writeTaskResult(task_id, success, result, [])
+
+def runTrainJob(task_id: str, train_data: dict):
+    selected_model = train_data["base_model"]
+    success, result, frauds, stats = train.prepareTrain(train_data, selected_model)
+    wr.writeTaskResult(task_id, success, result, frauds)
+    if stats:
+        wr.writeStatsResult(train_data["model_name"], stats)
 
 
 
-# Purge tasks.json, only for the dev time
-with open("app/utils/tasks.json", "w") as f:
-    json.dump([], f)
+#Purge tasks.json, only for the dev time
+#with open("app/utils/tasks.json", "w") as f:
+#    json.dump([], f)
