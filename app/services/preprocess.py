@@ -95,8 +95,6 @@ def preprocess(df: pd.DataFrame):
 
     df = df.astype(float)
 
-    df.to_csv("preprocessed_input.csv", index=False)
-
     return df
 
 
