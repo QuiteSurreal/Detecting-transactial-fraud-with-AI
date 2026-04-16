@@ -28,7 +28,7 @@ y_test = None
 
 def prepareTrain(train_data, selected_model):
     try:
-        df = pd.read_csv('./resources/data/preprocessed_input.csv', delimiter=',')
+        df = pd.read_csv('./resources/data/Preprocessed_input.csv', delimiter=',')
     except Exception as e:
         return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 

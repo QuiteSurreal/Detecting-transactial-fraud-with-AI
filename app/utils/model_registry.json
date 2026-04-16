@@ -3,6 +3,7 @@
     "path": "app/models/XGB without SMOTE.sav",
     "description": "Optimized XGBoost with tuned params",
     "base_model": "xgb",
+    "upgradable": 1,
     "hyperparameters": {
       "n_estimators": 500,
       "max_depth": 6,
@@ -15,6 +16,7 @@
     "path": "app/models/XGB with SMOTE.sav",
     "description": "Optimized XGBoost with tuned params",
     "base_model": "xgb_smote",
+    "upgradable": 1,
     "hyperparameters": {
       "n_estimators": 1000,
       "max_depth": 6,
@@ -28,6 +30,7 @@
     "path": "app/models/Ensemble.sav",
     "description": "Ensemble made up from Random Forest and SMOTE XGB",
     "base_model": "ensemble",
+    "upgradable": 0,
     "hyperparameters": {
       "rf_n_estimators": 500,
       "rf_max_depth": 6,
@@ -39,28 +42,10 @@
       "smote_sampling_strategy": "auto"
     }
   },
-  "dwa": {
-    "path": "app/models/dwa.sav",
-    "description": "Custom XGB model",
-    "base_model": "xgb",
-    "hyperparameters": {
-      "n_estimators": 500,
-      "max_depth": 6,
-      "learning_rate": 0.1,
-      "scale_pos_weight": 99.9,
-      "eval_metric": "logloss"
-    }
-  },
-  "nzt": {
-    "path": "app/models/nzt.sav",
-    "description": "Custom XGB model",
-    "base_model": "xgb",
-    "hyperparameters": {
-      "n_estimators": 500,
-      "max_depth": 6,
-      "learning_rate": 0.1,
-      "scale_pos_weight": 99.9,
-      "eval_metric": "logloss"
-    }
+  "Isolation Forest + KMeans": {
+    "pathI": "app/models/Isolation_forest.sav",
+    "pathK": "app/models/KMeans.sav",
+    "upgradable": 0,
+    "description": "Unsupervised models made to detect anomalies and distribute them into different clusters"
   }
 }

@@ -1,8 +1,6 @@
 from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-import pandas as pd
-import joblib
 import json
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
@@ -144,7 +142,8 @@ def runPreprocessFileJob(task_id: str, file: bytes, selected_model: str, mode: i
     data = StringIO(file.decode("utf-8"))
     success, result, frauds, stats = prep.preprocessFile(data, selected_model, mode)
     wr.writeTaskResult(task_id, success, result, frauds)
-    wr.writeStatsResult(selected_model, stats)
+    if (stats):
+        wr.writeStatsResult(selected_model, stats)
 
 def runPreprocessJSONJob(task_id: str, request: PredictRequest, mode: int):
     success, result = prep.preprocessJSON(request, mode)

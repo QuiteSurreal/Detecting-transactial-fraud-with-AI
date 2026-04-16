@@ -63,6 +63,7 @@
         </tbody>
       </table>
       <br>If the csv doesn't match these parameters, the preprocessing discards the query
+      <br>The only upgradable models are the ones based on only XGB
     </div>
     <div class="container" style="margin-top:50px">
       <h2>Make prediction</h2>
@@ -75,7 +76,7 @@
         </div>
         <button class="btn btn-primary" type="submit" formaction="/predict/file">Run Prediction</button>
         <br><br>
-        <button class="btn btn-primary" type="submit" formaction="/upgrade">Run Upgrade</button>
+        <button id="upgrade-button" class="btn btn-primary" type="submit" formaction="/upgrade" disabled title="Select an upgradable model">Run Upgrade</button>
       </form>
       <br><br>
     </div>

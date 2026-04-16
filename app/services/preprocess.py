@@ -1,8 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score, f1_score
 
 from app.services import predict as pred
@@ -21,7 +19,7 @@ EXPECTED_SCHEMA = {
     "isFraud": int,
 }
 
-def preprocessFile(data, modelName, mode):
+def preprocessFile(data, model_name, mode):
     try:
         dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
     except Exception as e:
@@ -40,40 +38,61 @@ def preprocessFile(data, modelName, mode):
         return 0, errors, [], None
 
     try:
-        df = preprocess(df, mode)
+        df = preprocess(df, mode, model_name)
     except Exception as e:
         return 0, [f"Error preprocessing data: {str(e)}"], [], None
     
 
     try:
-        y_pred = pred.runPrediction(modelName, df)
+        y_pred = pred.runPrediction(model_name, df)
     except Exception as e:
         return 0, [f"Error running prediction: {str(e)}"], [], None
 
-    dfRaw['prediction'] = y_pred
-    fraud_count = int((dfRaw["prediction"] == 1).sum())
-    legit_count = int((dfRaw["prediction"] == 0).sum())
+    if (model_name != "Isolation Forest + KMeans"):
+        dfRaw['prediction'] = y_pred
+        fraud_count = int((dfRaw["prediction"] == 1).sum())
+        legit_count = int((dfRaw["prediction"] == 0).sum())
 
-    frauds = dfRaw[dfRaw["prediction"] == 1]
+        frauds = dfRaw[dfRaw["prediction"] == 1]
 
-    desc = {
-        "total_records": len(dfRaw),
-        "frauds_detected": fraud_count,
-        "legitimate": legit_count
-    }
+        desc = {
+            "total_records": len(dfRaw),
+            "frauds_detected": fraud_count,
+            "legitimate": legit_count
+        }
 
-    stats = None
-    if (y_true is not None):
-        cm = confusion_matrix(y_true, y_pred).tolist()
-        accuracy = accuracy_score(y_true, y_pred)
-        precision = precision_score(y_true, y_pred)
-        recall = recall_score(y_true, y_pred)
-        f1 = f1_score(y_true, y_pred)
-        stats = [
-            len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1
-        ]
+        stats = None
+        if (y_true is not None):
+            cm = confusion_matrix(y_true, y_pred).tolist()
+            accuracy = accuracy_score(y_true, y_pred)
+            precision = precision_score(y_true, y_pred)
+            recall = recall_score(y_true, y_pred)
+            f1 = f1_score(y_true, y_pred)
+            stats = [
+                len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1
+            ]
 
-    return 1, desc, frauds.to_dict(orient='records'), stats
+        return 1, desc, frauds.to_dict(orient='records'), stats
+    else:
+        # Unsupervised: anomalies with clusters
+        anomalies = [pred for pred in y_pred if pred['is_anomaly']]
+        anomaly_count = len(anomalies)
+        normal_count = len(y_pred) - anomaly_count
+        
+        # Add cluster and anomaly info to dfRaw
+        dfRaw['is_anomaly'] = [pred['is_anomaly'] for pred in y_pred]
+        dfRaw['cluster'] = [pred['cluster'] for pred in y_pred]
+        
+        anomalous_entries = dfRaw[dfRaw['is_anomaly'] == True]
+        
+        desc = {
+            "total_records": len(dfRaw),
+            "anomalies_detected": anomaly_count,
+            "normal": normal_count,
+            "clusters": len(set(anomalous_entries['cluster'].dropna()))
+        }
+        
+        return 1, desc, anomalous_entries.to_dict(orient='records'), None 
     
 
 def preprocessJSON(request, mode):
@@ -81,7 +100,7 @@ def preprocessJSON(request, mode):
     time.sleep(10)
     return 1, "fraudulent: 10, rows: 1000"
 
-def preprocess(df: pd.DataFrame, mode):
+def preprocess(df: pd.DataFrame, mode, model_name):
 
     if ('isFlaggedFraud' in df):
         df = df.drop('isFlaggedFraud', axis=1)
@@ -94,8 +113,9 @@ def preprocess(df: pd.DataFrame, mode):
 
     df = df.astype(float)
 
-    if (mode == 1):
-        print()
+    if (model_name == "Isolation Forest + KMeans"):
+        scaler = StandardScaler()
+        df =  scaler.fit_transform(df)
 
 
     return df

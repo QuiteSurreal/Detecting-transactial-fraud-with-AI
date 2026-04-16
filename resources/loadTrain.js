@@ -107,10 +107,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    if (baseModel == "ensemble") {
+      upgradable = 0;
+    }
+    else {
+      upgradable = 1;
+    }
+
     // Prepare request
     const trainData = {
       model_name: modelName,
       base_model: baseModel,
+      upgradable: upgradable,
       hyperparameters: hyperparameters
     };
 
