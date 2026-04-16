@@ -29,20 +29,21 @@ def preprocessFile(data, modelName, mode):
     
     df = dfRaw.copy()
 
+    y_true = None
+    if ('isFraud' in df):
+        y_true = df['isFraud'].values
+        df = df.drop('isFraud', axis=1)
+
     errors = validateData(df)
 
     if (errors):
         return 0, errors, [], None
 
     try:
-        df = preprocess(df)
+        df = preprocess(df, mode)
     except Exception as e:
         return 0, [f"Error preprocessing data: {str(e)}"], [], None
     
-    y_true = None
-    if ('isFraud' in df):
-        y_true = df['isFraud'].values
-        df = df.drop('isFraud', axis=1)
 
     try:
         y_pred = pred.runPrediction(modelName, df)
@@ -69,20 +70,18 @@ def preprocessFile(data, modelName, mode):
         recall = recall_score(y_true, y_pred)
         f1 = f1_score(y_true, y_pred)
         stats = [
-            len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1, stats
+            len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1
         ]
 
     return 1, desc, frauds.to_dict(orient='records'), stats
     
-
-
 
 def preprocessJSON(request, mode):
     import time
     time.sleep(10)
     return 1, "fraudulent: 10, rows: 1000"
 
-def preprocess(df: pd.DataFrame):
+def preprocess(df: pd.DataFrame, mode):
 
     if ('isFlaggedFraud' in df):
         df = df.drop('isFlaggedFraud', axis=1)
@@ -94,6 +93,10 @@ def preprocess(df: pd.DataFrame):
         df[col] = LabelEncoder().fit_transform(df[col])
 
     df = df.astype(float)
+
+    if (mode == 1):
+        print()
+
 
     return df
 

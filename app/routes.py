@@ -133,7 +133,8 @@ async def trainModel(background_tasks: BackgroundTasks, request_data: dict):
     wr.writeJSON(entry, "app/utils/tasks.json")
     background_tasks.add_task(runTrainJob, task_id, request_data)
     
-    return {"task_id": task_id}
+    return RedirectResponse(url="/", status_code=303)
+    #return {"task_id": task_id}
 
 
 
@@ -159,5 +160,5 @@ def runTrainJob(task_id: str, train_data: dict):
 
 
 #Purge tasks.json, only for the dev time
-#with open("app/utils/tasks.json", "w") as f:
-#    json.dump([], f)
+with open("app/utils/tasks.json", "w") as f:
+    json.dump([], f)

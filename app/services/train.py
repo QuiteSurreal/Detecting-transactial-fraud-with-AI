@@ -27,15 +27,16 @@ y_test = None
 
 
 def prepareTrain(train_data, selected_model):
-    df = pd.read_csv('./factory/Data/preprocessed_input.csv', delimiter=',')
+    try:
+        df = pd.read_csv('./resources/data/preprocessed_input.csv', delimiter=',')
+    except Exception as e:
+        return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 
     X = df.drop('isFraud', axis=1)
     y = df['isFraud']
 
     global X_train, X_test, y_train, y_test
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size = 0.2, random_state = 42)
-
-    model_name = train_data["model_name"]
 
     if (selected_model == "xgb"):
         return trainXGB(train_data)
@@ -62,33 +63,11 @@ def trainXGB(train_data):
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(model, model_path)
 
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGB model")
+    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGB model", "xgb", train_data["hyperparameters"])
 
     y_pred = model.predict(X_test)
-    fraud_count = int((y_pred == 1).sum())
-    legit_count = int((y_pred == 0).sum())
-
-    cm = confusion_matrix(y_test, y_pred).tolist()
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-
-    desc = {
-        "total_records": len(X_test),
-        "frauds_detected": fraud_count,
-        "legitimate": legit_count,
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1
-    }
-
-    stats = [
-        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1, None
-    ]
-
-    frauds = []  # Could add fraud examples if needed
+    
+    desc, frauds, stats = eval_model(y_pred)
 
     return 1, desc, frauds, stats
 
@@ -110,40 +89,14 @@ def trainXGBSMOTE(train_data):
 
     pipeline.fit(X_train, y_train)
 
-    # Save model
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(pipeline, model_path)
 
-    # Update registry
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGBoost with SMOTE model")
+    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGBoost with SMOTE model", "xgb_smote", train_data["hyperparameters"])
 
-    # Final prediction check
     y_pred = pipeline.predict(X_test)
-    fraud_count = int((y_pred == 1).sum())
-    legit_count = int((y_pred == 0).sum())
-
-    # Calculate metrics
-    cm = confusion_matrix(y_test, y_pred).tolist()
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-
-    desc = {
-        "total_records": len(X_test),
-        "frauds_detected": fraud_count,
-        "legitimate": legit_count,
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1
-    }
-
-    stats = [
-        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1, None
-    ]
-
-    frauds = []
+    
+    desc, frauds, stats = eval_model(y_pred)
 
     return 1, desc, frauds, stats
 
@@ -175,19 +128,25 @@ def trainEnsemble(train_data):
 
     stack.fit(X_train_n, y_train_n)
 
-    # Save model
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(stack, model_path)
 
-    # Update registry
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom Ensemble model")
+    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom Ensemble model", "ensemble", train_data["hyperparameters"])
 
-    # Final prediction check
     y_pred = stack.predict(X_test)
+    
+    desc, frauds, stats = eval_model(y_pred)
+
+    return 1, desc, frauds, stats
+
+
+def eval_model(y_pred):
+
+
+
     fraud_count = int((y_pred == 1).sum())
     legit_count = int((y_pred == 0).sum())
 
-    # Calculate metrics
     cm = confusion_matrix(y_test, y_pred).tolist()
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)
@@ -205,11 +164,18 @@ def trainEnsemble(train_data):
     }
 
     stats = [
-        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1, None
+        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1
     ]
 
-    frauds = []
+    try:
+        dfRaw = pd.read_csv("./resources/data/Input.csv", delimiter = ',', nrows = 20000)
+    except Exception as e:
+        return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 
-    return 1, desc, frauds, stats
+    dfRaw['prediction'] = y_pred
+    fraud_count = int((dfRaw["prediction"] == 1).sum())
+    legit_count = int((dfRaw["prediction"] == 0).sum())
 
+    frauds = dfRaw[dfRaw["prediction"] == 1]
 
+    return desc, frauds.to_dict(orient='records'), stats
