@@ -1,6 +1,6 @@
 {
-  "xgboost without SMOTE": {
-    "path": "app/models/XGB without SMOTE.sav",
+  "XGBoost without SMOTE": {
+    "path": "app/models/XGB without SMOTE.ubj",
     "description": "Optimized XGBoost with tuned params",
     "base_model": "xgb",
     "upgradable": 1,
@@ -12,8 +12,8 @@
       "eval_metric": "logloss"
     }
   },
-  "xgboost with SMOTE": {
-    "path": "app/models/XGB with SMOTE.sav",
+  "XGBoost with SMOTE": {
+    "path": "app/models/XGB with SMOTE.ubj",
     "description": "Optimized XGBoost with tuned params",
     "base_model": "xgb_smote",
     "upgradable": 1,
@@ -26,7 +26,7 @@
       "smote_sampling_strategy": "auto"
     }
   },
-  "Ensenble": {
+  "Ensemble": {
     "path": "app/models/Ensemble.sav",
     "description": "Ensemble made up from Random Forest and SMOTE XGB",
     "base_model": "ensemble",

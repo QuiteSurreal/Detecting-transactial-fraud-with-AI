@@ -19,7 +19,7 @@ EXPECTED_SCHEMA = {
     "isFraud": int,
 }
 
-def preprocessFile(data, model_name, mode):
+def preprocessFile(data, model_name):
     try:
         dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
     except Exception as e:
@@ -38,7 +38,7 @@ def preprocessFile(data, model_name, mode):
         return 0, errors, [], None
 
     try:
-        df = preprocess(df, mode, model_name)
+        df = preprocess(df, model_name)
     except Exception as e:
         return 0, [f"Error preprocessing data: {str(e)}"], [], None
     
@@ -74,25 +74,22 @@ def preprocessFile(data, model_name, mode):
 
         return 1, desc, frauds.to_dict(orient='records'), stats
     else:
-        # Unsupervised: anomalies with clusters
-        anomalies = [pred for pred in y_pred if pred['is_anomaly']]
-        anomaly_count = len(anomalies)
-        normal_count = len(y_pred) - anomaly_count
-        
-        # Add cluster and anomaly info to dfRaw
         dfRaw['is_anomaly'] = [pred['is_anomaly'] for pred in y_pred]
         dfRaw['cluster'] = [pred['cluster'] for pred in y_pred]
-        
-        anomalous_entries = dfRaw[dfRaw['is_anomaly'] == True]
-        
+
+        anomalous_entries = dfRaw[dfRaw['is_anomaly'] == True].copy()
+        anomaly_count = len(anomalous_entries)
+        normal_count = len(dfRaw) - anomaly_count
+        #cluster_count = int(anomalous_entries['cluster'].dropna().nunique())
+        cluster_count = 3
         desc = {
             "total_records": len(dfRaw),
             "anomalies_detected": anomaly_count,
             "normal": normal_count,
-            "clusters": len(set(anomalous_entries['cluster'].dropna()))
+            "clusters": cluster_count
         }
-        
-        return 1, desc, anomalous_entries.to_dict(orient='records'), None 
+
+        return 1, desc, anomalous_entries.to_dict(orient='records'), None
     
 
 def preprocessJSON(request, mode):
@@ -100,7 +97,7 @@ def preprocessJSON(request, mode):
     time.sleep(10)
     return 1, "fraudulent: 10, rows: 1000"
 
-def preprocess(df: pd.DataFrame, mode, model_name):
+def preprocess(df: pd.DataFrame, model_name):
 
     if ('isFlaggedFraud' in df):
         df = df.drop('isFlaggedFraud', axis=1)
@@ -115,22 +112,42 @@ def preprocess(df: pd.DataFrame, mode, model_name):
 
     if (model_name == "Isolation Forest + KMeans"):
         scaler = StandardScaler()
-        df =  scaler.fit_transform(df)
+        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
 
     return df
+
+def preprocessForTrain(data):
+    try:
+        dfRaw = pd.read_csv(data, delimiter=',', nrows=100000)
+    except Exception as e:
+        return None, [f"Failed to read CSV file: {str(e)}"]
+    
+    if 'isFraud' not in dfRaw.columns:
+        return None, ["Missing 'isFraud' column in training data"]
+    
+    y = dfRaw['isFraud'].values
+    df = dfRaw.drop('isFraud', axis=1)
+    
+    errors = validateData(df)
+    if errors:
+        return None, errors
+    
+    df = preprocess(df, "xgb")  # Assuming XGB preprocessing for upgrade
+    return df, y
 
 
 def validateData(data: pd.DataFrame):
     errors = []
 
-    for col in EXPECTED_SCHEMA:
-        if col not in data.columns:
-            errors.append(f"Missing columns: {col}")
-    
     for col, expectedType in EXPECTED_SCHEMA.items():
-        if col in data.columns:
-            if not data[col].map(lambda x: isinstance(x, expectedType)).all():
-                errors.append(f"Column {col} has invalid type (expected type: {expectedType.__name__})")
+        if col not in data.columns:
+            if col == 'isFraud':
+                continue
+            errors.append(f"Missing columns: {col}")
+            continue
+
+        if not data[col].map(lambda x: isinstance(x, expectedType)).all():
+            errors.append(f"Column {col} has invalid type (expected type: {expectedType.__name__})")
     
     return errors

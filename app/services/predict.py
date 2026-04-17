@@ -1,5 +1,5 @@
 import joblib
-import os
+import xgboost as xgb
 import pandas as pd
 import json
 
@@ -21,17 +21,14 @@ def runUnsupervisedPrediction(df: pd.DataFrame):
     isolation_forest = joblib.load(model_info["pathI"])
     kmeans = joblib.load(model_info["pathK"])
     
-    # Predict anomalies with Isolation Forest (-1 for anomalies, 1 for normal)
     anomaly_scores = isolation_forest.predict(df)
     anomalies = anomaly_scores == -1
     
-    # For anomalies, predict clusters with KMeans
     if anomalies.sum() > 0:
         cluster_labels = kmeans.predict(df[anomalies])
     else:
         cluster_labels = []
     
-    # Return a list or dict with anomaly status and cluster
     results = []
     cluster_idx = 0
     for i, is_anomaly in enumerate(anomalies):
@@ -55,4 +52,9 @@ def loadModel(modelName):
         model_info = registry[modelName]
     if not model_info:
         raise ValueError(f"Model {modelName} not found")
-    return joblib.load(model_info["path"])
+    if (model_info["base_model"] == "xgb" or model_info["base_model"] == "xgb_smote"):
+        model = xgb.XGBClassifier()
+        model.load_model(model_info["path"])
+        return model
+    else:
+        return joblib.load(model_info["path"])

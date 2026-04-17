@@ -9,7 +9,7 @@ fetch('/models')
           const selectedOption = predict.options[predict.selectedIndex];
           const upgradable = selectedOption && selectedOption.dataset.upgradable === '1';
           upgradeButton.disabled = !upgradable;
-          upgradeButton.title = upgradable ? 'Upgrade this model' : 'This model cannot be upgraded';
+          upgradeButton.textContent = upgradable ? 'Upgrade this model' : 'This model cannot be upgraded';
         };
 
         for (const [key, value] of Object.entries(models)) {

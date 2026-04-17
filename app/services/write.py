@@ -162,7 +162,7 @@ def editJSON(id, new_data, filename):
         file.truncate()
         json.dump(file_data, file, indent=4)
 
-def updateModelRegistry(model_name, model_path, description, base_model=None, hyperparameters=None):
+def updateModelRegistry(model_name, model_path, description, base_model, upgradable, hyperparameters=None):
     
 
     # Load existing registry
@@ -174,9 +174,11 @@ def updateModelRegistry(model_name, model_path, description, base_model=None, hy
         "path": model_path,
         "description": description,
         "base_model": base_model,
+        "upgradable": upgradable,
         "hyperparameters": hyperparameters
     }
 
     # Save updated registry
     with open("app/utils/model_registry.json", 'w') as f:
         json.dump(registry, f, indent=2)
+

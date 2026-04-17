@@ -1,4 +1,3 @@
-from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.pipeline import Pipeline
 from sklearn.ensemble import StackingClassifier
@@ -15,39 +14,43 @@ from imblearn.over_sampling import SMOTE
 import joblib
 
 from app.services import write as wr
-
-
-X_train = None
-y_train = None
-X_test = None
-y_test = None
+from app.services import preprocess as prep
+from io import StringIO
 
 
 
 
 
-def prepareTrain(train_data, selected_model):
-    try:
-        df = pd.read_csv('./resources/data/Preprocessed_input.csv', delimiter=',')
-    except Exception as e:
-        return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 
-    X = df.drop('isFraud', axis=1)
-    y = df['isFraud']
+def prepareTrain(train_data, selected_model, mode, file_data=None):
+    if file_data and mode == 1:
+        data = StringIO(file_data.decode("utf-8"))
+        X, y = prep.preprocessForTrain(data)
+        if X is None:
+            return 0, y, [], None 
 
-    global X_train, X_test, y_train, y_test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size = 0.2, random_state = 42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+    else:
+        try:
+            df = pd.read_csv('./resources/data/Preprocessed_input.csv', delimiter=',')
+        except Exception as e:
+            return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 
-    if (selected_model == "xgb"):
-        return trainXGB(train_data)
+        X = df.drop('isFraud', axis=1)
+        y = df['isFraud']
+ 
+        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+
+    if (mode == 1):
+        return upgradeXGB(train_data, X_train, X_test, y_train, y_test)
+    elif (selected_model == "xgb"):
+        return trainXGB(train_data, X_train, X_test, y_train, y_test)
     elif (selected_model == "xgb_smote"):
-        return trainXGBSMOTE(train_data)
+        return trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test)
     elif (selected_model == "ensemble"):
-        return trainEnsemble(train_data)
+        return trainEnsemble(train_data, X_train, X_test, y_train, y_test)
 
-
-def trainXGB(train_data):
-    kf = StratifiedKFold(n_splits=5, shuffle=True)
+def trainXGB(train_data, X_train, X_test, y_train, y_test):
 
     model = xgb.XGBClassifier(
         n_estimators=train_data["hyperparameters"]["n_estimators"],
@@ -63,17 +66,23 @@ def trainXGB(train_data):
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(model, model_path)
 
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGB model", "xgb", train_data["hyperparameters"])
+    wr.updateModelRegistry(
+        train_data['model_name'], 
+        model_path, 
+        "Custom XGB model", 
+        "xgb", 
+        1,
+        train_data["hyperparameters"]
+    )
 
     y_pred = model.predict(X_test)
     
-    desc, frauds, stats = eval_model(y_pred)
+    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
 
     return 1, desc, frauds, stats
 
 
-def trainXGBSMOTE(train_data):
-    kf = StratifiedKFold(n_splits=5, shuffle=True)
+def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test):
 
     pipeline = Pipeline(steps=[
         ('smote', SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])),
@@ -92,17 +101,67 @@ def trainXGBSMOTE(train_data):
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(pipeline, model_path)
 
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom XGBoost with SMOTE model", "xgb_smote", train_data["hyperparameters"])
+    wr.updateModelRegistry(
+        train_data['model_name'], 
+        model_path, 
+        "Custom XGBoost with SMOTE model", 
+        "xgb_smote", 
+        1,
+        train_data["hyperparameters"]
+    )
 
     y_pred = pipeline.predict(X_test)
     
-    desc, frauds, stats = eval_model(y_pred)
+    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
+
+    return 1, desc, frauds, stats
+
+def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test):
+    
+    print(upgrade_data['model_path'])
+
+
+    try:
+        model = xgb.XGBClassifier()
+        model.load_model(upgrade_data['model_path'])
+    except Exception as e:
+        return 0, [f"Failed to load model: {str(e)}"], [], None
+
+    if "hyperparameters" in upgrade_data and upgrade_data["hyperparameters"]:
+        try:
+            model.set_params(**upgrade_data["hyperparameters"])
+        except Exception as e:
+            print(f"Warning: Could not update some params: {e}")
+
+    if (upgrade_data["base_model"] == "xgb_smote"):
+        smote = SMOTE(sampling_strategy=upgrade_data["hyperparameters"])
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+
+    try:
+        model.fit(X_train, y_train, xgb_model=model.get_booster())
+    except Exception as e:
+        return 0, [f"Error training model: {str(e)}"], [], None
+
+    model_path = f"app/models/{upgrade_data['model_name']}.ubj"
+    model.save_model(model_path)
+
+    wr.updateModelRegistry(
+        upgrade_data['model_name'], 
+        model_path, 
+        "Upgraded XGB model", 
+        upgrade_data["base_model"], 
+        1,
+        upgrade_data.get("hyperparameters", {})
+    )
+
+    y_pred = model.predict(X_test)
+    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
 
     return 1, desc, frauds, stats
 
 
-def trainEnsemble(train_data):
-    kf = StratifiedKFold(n_splits=5, shuffle=True)
+
+def trainEnsemble(train_data, X_train, X_test, y_train, y_test):
 
     smote = SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])
 
@@ -131,16 +190,23 @@ def trainEnsemble(train_data):
     model_path = f"app/models/{train_data['model_name']}.sav"
     joblib.dump(stack, model_path)
 
-    wr.updateModelRegistry(train_data['model_name'], model_path, "Custom Ensemble model", "ensemble", train_data["hyperparameters"])
+    wr.updateModelRegistry(
+        train_data['model_name'], 
+        model_path, 
+        "Custom Ensemble model", 
+        "ensemble", 
+        0,
+        train_data["hyperparameters"]
+    )
 
     y_pred = stack.predict(X_test)
     
-    desc, frauds, stats = eval_model(y_pred)
+    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
 
     return 1, desc, frauds, stats
 
 
-def eval_model(y_pred):
+def eval_model(y_pred, X_test, y_test):
 
 
 

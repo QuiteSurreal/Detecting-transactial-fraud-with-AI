@@ -11,19 +11,26 @@ function loadTasks() {
             }
 
             data.reverse().forEach(task => {
-              console.log(JSON.stringify(task));
               const statusClass = task.status.toLowerCase();
               const statusBadge = `<span class="status-badge ${statusClass}">${task.status}</span>`;
               
               let rowHTML = '';
               if (task.status == "SUCCESS")
               {
+                let summaryHtml = `Total records: ${task.desc["total_records"]}`;
+                if (task.desc["frauds_detected"] !== undefined) {
+                  summaryHtml += ` <br> Detected frauds: ${task.desc["frauds_detected"]}`;
+                  summaryHtml += ` <br> Legitimate entries: ${task.desc["legitimate"]}`;
+                } else if (task.desc["anomalies_detected"] !== undefined) {
+                  summaryHtml += ` <br> Detected anomalies: ${task.desc["anomalies_detected"]}`;
+                  summaryHtml += ` <br> Normal entries: ${task.desc["normal"]}`;
+                  summaryHtml += ` <br> Clusters: ${task.desc["clusters"]}`;
+                }
+
                 rowHTML = `
                 <td>${task.id}</td>
                 <td>${statusBadge}</td>
-                <td>Total records: ${task.desc["total_records"]} <br> 
-                Detected frauds: ${task.desc["frauds_detected"]} <br> 
-                Legitimate entries: ${task.desc["legitimate"]} </td>
+                <td>${summaryHtml}</td>
                 `;
               }
               else if (task.status == "FAIL")

@@ -1,37 +1,37 @@
 [
     {
         "id": "Total",
-        "records": 2400000,
-        "frauds": 3614,
-        "legit": 2396386,
+        "records": 3000000,
+        "frauds": 4271,
+        "legit": 2995729,
         "confusion": [
             [
-                1201500,
-                603
+                1800745,
+                663
             ],
             [
-                133,
-                1317
+                231,
+                1914
             ]
         ],
         "acc": 0.996,
-        "prec": 0.866,
-        "rec": 0.924,
-        "F1": 0.873
+        "prec": 0.87,
+        "rec": 0.907,
+        "F1": 0.87
     },
     {
         "id": "xgboost without SMOTE",
-        "records": 1800000,
-        "frauds": 1998,
-        "legit": 1798002,
+        "records": 2000000,
+        "frauds": 2220,
+        "legit": 1997780,
         "confusion": [
             [
-                1797894,
-                18
+                1997660,
+                20
             ],
             [
-                108,
-                1980
+                120,
+                2200
             ]
         ],
         "acc": 0.999,
@@ -80,23 +80,83 @@
         "F1": 0
     },
     {
-        "id": "nzt",
-        "records": 20000,
-        "frauds": 18,
-        "legit": 19982,
+        "id": "XGBoost without SMOTE_upgraded",
+        "records": 140000,
+        "frauds": 144,
+        "legit": 139856,
         "confusion": [
             [
-                19976,
-                1
+                139835,
+                3
             ],
             [
-                6,
-                17
+                21,
+                141
             ]
         ],
         "acc": 0.999,
-        "prec": 0.944,
-        "rec": 0.739,
-        "F1": 0.829
+        "prec": 0.976,
+        "rec": 0.869,
+        "F1": 0.917
+    },
+    {
+        "id": "XGBoost with SMOTE_upgraded",
+        "records": 20000,
+        "frauds": 12,
+        "legit": 19988,
+        "confusion": [
+            [
+                19977,
+                0
+            ],
+            [
+                11,
+                12
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 1.0,
+        "rec": 0.521,
+        "F1": 0.685
+    },
+    {
+        "id": "ens",
+        "records": 120000,
+        "frauds": 138,
+        "legit": 119862,
+        "confusion": [
+            [
+                119834,
+                27
+            ],
+            [
+                28,
+                111
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 0.803,
+        "rec": 0.798,
+        "F1": 0.8
+    },
+    {
+        "id": "Ensemble",
+        "records": 100000,
+        "frauds": 123,
+        "legit": 99877,
+        "confusion": [
+            [
+                99857,
+                27
+            ],
+            [
+                20,
+                96
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 0.78,
+        "rec": 0.827,
+        "F1": 0.803
     }
 ]

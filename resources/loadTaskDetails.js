@@ -11,31 +11,57 @@ function loadTaskDetails() {
       .then(response => response.json())
       .then(data => {
         const detailsDiv = document.getElementById('task-details');
-        let fraudListHtml = '';
+
+        const totalRecords = data.desc?.total_records ?? 0;
+        const fraudsDetected = data.desc?.frauds_detected;
+        const anomaliesDetected = data.desc?.anomalies_detected;
+        const legitimateEntries = data.desc?.legitimate;
+        const normalEntries = data.desc?.normal;
+        const clusters = data.desc?.clusters;
+
+        let statisticsHtml = `
+              <li><strong>Total Records:</strong> ${totalRecords}</li>
+        `;
+
+        if (fraudsDetected !== undefined) {
+          statisticsHtml += `
+              <li><strong>Frauds Detected:</strong> ${fraudsDetected}</li>
+              <li><strong>Legitimate Entries:</strong> ${legitimateEntries ?? 0}</li>
+          `;
+        } else if (anomaliesDetected !== undefined) {
+          statisticsHtml += `
+              <li><strong>Anomalies Detected:</strong> ${anomaliesDetected}</li>
+              <li><strong>Normal Entries:</strong> ${normalEntries ?? 0}</li>
+              <li><strong>Clusters:</strong> ${clusters ?? 0}</li>
+          `;
+        }
+
+        let anomalyListHtml = '';
         if (Array.isArray(data.frauds) && data.frauds.length > 0) {
-            fraudListHtml = data.frauds.map(f => {
-                const t = f.type;
-                const amt = f.amount;
-                const from = f.nameOrig;
-                const to = f.nameDest;
-                return `<li><strong>Type:</strong> ${t} &nbsp; <strong>Amount:</strong> ${amt} &nbsp; <strong>From:</strong> ${from} &nbsp; <strong>To:</strong> ${to}</li>`;
+            anomalyListHtml = data.frauds.map(f => {
+                const t = f.type ?? 'N/A';
+                const amt = f.amount ?? 'N/A';
+                const from = f.nameOrig ?? 'N/A';
+                const to = f.nameDest ?? 'N/A';
+                const cluster = f.cluster !== undefined ? ` &nbsp; <strong>Cluster:</strong> ${f.cluster}` : '';
+                const anomalyTag = f.is_anomaly !== undefined ? ` &nbsp; <strong>Anomaly:</strong> ${f.is_anomaly}` : '';
+                return `<li><strong>Type:</strong> ${t} &nbsp; <strong>Amount:</strong> ${amt} &nbsp; <strong>From:</strong> ${from} &nbsp; <strong>To:</strong> ${to}${cluster}${anomalyTag}</li>`;
             }).join('');
         } else {
-            fraudListHtml = '<li>No frauds</li>';
+            anomalyListHtml = '<li>No anomalous entries</li>';
         }
+
         detailsDiv.innerHTML = `
             <div class="card-body">
                 <h2>Task ID: ${data.id}</h2>
                 <p><strong>Status:</strong> <span class="status-badge ${data.status.toLowerCase()}">${data.status}</span></p>
                 <h3>Statistics</h3>
                 <ul>
-                    <li><strong>Total Records:</strong> ${data.desc.total_records}</li>
-                    <li><strong>Frauds Detected:</strong> ${data.desc.frauds_detected}</li>
-                    <li><strong>Legitimate Entries:</strong> ${data.desc.legitimate}</li>
+                  ${statisticsHtml}
                 </ul>
-                <h3>Frauds</h3>
+                <h3>Detected Entries</h3>
                 <ul>
-                  ${fraudListHtml}
+                  ${anomalyListHtml}
                 </ul>
             </div>
         `;
