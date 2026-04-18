@@ -1,23 +1,23 @@
 [
     {
         "id": "Total",
-        "records": 3000000,
-        "frauds": 4271,
-        "legit": 2995729,
+        "records": 3720000,
+        "frauds": 5112,
+        "legit": 3714888,
         "confusion": [
             [
-                1800745,
-                663
+                2519799,
+                774
             ],
             [
-                231,
-                1914
+                336,
+                2644
             ]
         ],
         "acc": 0.996,
-        "prec": 0.87,
-        "rec": 0.907,
-        "F1": 0.87
+        "prec": 0.867,
+        "rec": 0.897,
+        "F1": 0.867
     },
     {
         "id": "xgboost without SMOTE",
@@ -141,22 +141,62 @@
     },
     {
         "id": "Ensemble",
-        "records": 100000,
-        "frauds": 123,
-        "legit": 99877,
+        "records": 500000,
+        "frauds": 615,
+        "legit": 499385,
         "confusion": [
             [
-                99857,
-                27
+                499285,
+                135
             ],
             [
-                20,
-                96
+                100,
+                480
             ]
         ],
         "acc": 0.999,
         "prec": 0.78,
         "rec": 0.827,
         "F1": 0.803
+    },
+    {
+        "id": "XGBoost without SMOTE",
+        "records": 300000,
+        "frauds": 333,
+        "legit": 299667,
+        "confusion": [
+            [
+                299649,
+                3
+            ],
+            [
+                18,
+                330
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 0.99,
+        "rec": 0.948,
+        "F1": 0.969
+    },
+    {
+        "id": "v1_fraud_detector",
+        "records": 20000,
+        "frauds": 16,
+        "legit": 19984,
+        "confusion": [
+            [
+                19977,
+                0
+            ],
+            [
+                7,
+                16
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 1.0,
+        "rec": 0.695,
+        "F1": 0.82
     }
 ]

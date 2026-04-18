@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import json
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Request
 from pydantic import BaseModel
 from io import StringIO
 import uuid
@@ -51,10 +51,18 @@ def getTrain():
         return HTMLResponse(content=f.read())
     
 @app.get("/statsData")
-def getStatsData():
+def getStatsData(model_name: str = None):
     with open("app/utils/previous_data.json") as f:
         STATISTICS_ALL = json.load(f)
+
+    if model_name:
+        filtered = [item for item in STATISTICS_ALL if item.get("id") == model_name]
+        if not filtered:
+            raise HTTPException(status_code=404, detail=f"Statistics for model '{model_name}' not found")
+        return filtered
+
     return STATISTICS_ALL
+
     
 @app.get("/models")
 def getModels():
@@ -76,7 +84,7 @@ def getTasksData(task_id: str = None):
 
 
 @app.post("/predict/file")
-async def predictFile(background_tasks: BackgroundTasks, file: UploadFile, selected_model: str = Form(...)):
+async def predictFile(request: Request, background_tasks: BackgroundTasks, file: UploadFile, selected_model: str = Form(...)):
     task_id = str(uuid.uuid4())
     data = await file.read()
     entry = {
@@ -87,20 +95,10 @@ async def predictFile(background_tasks: BackgroundTasks, file: UploadFile, selec
     wr.writeJSON(entry, "app/utils/tasks.json")
     background_tasks.add_task(runPreprocessFileJob, task_id, data, selected_model)
     
-    return RedirectResponse(url="/", status_code=303)
-
-@app.post("/predict/json")
-def predictJSON(background_tasks: BackgroundTasks, request: PredictRequest):
-    task_id = str(uuid.uuid4())
-    entry = {
-        "id": task_id,
-        "status": "PENDING",
-        "desc": "none"
-    }
-    wr.writeJSON(entry, "app/utils/tasks.json")
-    background_tasks.add_task(runPreprocessJSONJob, task_id, request)
-    
-    return {"task_id": task_id}
+    if "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(url="/tasks", status_code=303)
+    else:
+        return {"status": "PENDING", "task_id": task_id}
 
 @app.get("/status/{task_id}")
 def get_status(task_id: str):
@@ -115,7 +113,7 @@ def get_status(task_id: str):
     return DATA
 
 @app.post("/train")
-async def trainModel(background_tasks: BackgroundTasks, request_data: dict):
+async def trainModel(request: Request, background_tasks: BackgroundTasks, request_data: dict):
     task_id = str(uuid.uuid4())
     entry = {
         "id": task_id,
@@ -125,11 +123,13 @@ async def trainModel(background_tasks: BackgroundTasks, request_data: dict):
     wr.writeJSON(entry, "app/utils/tasks.json")
     background_tasks.add_task(runTrainJob, task_id, request_data, 0)
     
-    return RedirectResponse(url="/", status_code=303)
-    #return {"task_id": task_id}
+    if "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(url="/tasks", status_code=303)
+    else:
+        return {"status": "PENDING", "task_id": task_id}
 
 @app.post("/upgrade")
-async def upgrade(background_tasks: BackgroundTasks, file: UploadFile, selected_model: str = Form(...)):
+async def upgrade(request: Request, background_tasks: BackgroundTasks, file: UploadFile, selected_model: str = Form(...)):
     task_id = str(uuid.uuid4())
     data = await file.read()
     entry = {
@@ -155,7 +155,12 @@ async def upgrade(background_tasks: BackgroundTasks, file: UploadFile, selected_
     
     background_tasks.add_task(runTrainJob, task_id, request_data, 1, data)
     
-    return RedirectResponse(url="/", status_code=303)
+    if "text/html" in request.headers.get("accept", ""):
+        # Browser user: send them to the dashboard
+        return RedirectResponse(url="/tasks", status_code=303)
+    else:
+        # API/Postman user: give them the data
+        return {"status": "PENDING", "task_id": task_id}
 
 
 

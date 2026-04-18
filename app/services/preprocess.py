@@ -92,11 +92,6 @@ def preprocessFile(data, model_name):
         return 1, desc, anomalous_entries.to_dict(orient='records'), None
     
 
-def preprocessJSON(request, mode):
-    import time
-    time.sleep(10)
-    return 1, "fraudulent: 10, rows: 1000"
-
 def preprocess(df: pd.DataFrame, model_name):
 
     if ('isFlaggedFraud' in df):
