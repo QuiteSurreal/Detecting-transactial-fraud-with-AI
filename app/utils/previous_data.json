@@ -1,66 +1,6 @@
 [
     {
         "id": "Total",
-        "records": 3720000,
-        "frauds": 5112,
-        "legit": 3714888,
-        "confusion": [
-            [
-                2519799,
-                774
-            ],
-            [
-                336,
-                2644
-            ]
-        ],
-        "acc": 0.996,
-        "prec": 0.867,
-        "rec": 0.897,
-        "F1": 0.867
-    },
-    {
-        "id": "xgboost without SMOTE",
-        "records": 2000000,
-        "frauds": 2220,
-        "legit": 1997780,
-        "confusion": [
-            [
-                1997660,
-                20
-            ],
-            [
-                120,
-                2200
-            ]
-        ],
-        "acc": 0.999,
-        "prec": 0.99,
-        "rec": 0.948,
-        "F1": 0.969
-    },
-    {
-        "id": "xgboost with SMOTE",
-        "records": 300000,
-        "frauds": 747,
-        "legit": 299253,
-        "confusion": [
-            [
-                299223,
-                429
-            ],
-            [
-                30,
-                318
-            ]
-        ],
-        "acc": 0.998,
-        "prec": 0.425,
-        "rec": 0.913,
-        "F1": 0.58
-    },
-    {
-        "id": "Ensenble",
         "records": 0,
         "frauds": 0,
         "legit": 0,
@@ -80,123 +20,63 @@
         "F1": 0
     },
     {
-        "id": "XGBoost without SMOTE_upgraded",
-        "records": 140000,
-        "frauds": 144,
-        "legit": 139856,
+        "id": "xgboost without SMOTE",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
         "confusion": [
             [
-                139835,
-                3
-            ],
-            [
-                21,
-                141
-            ]
-        ],
-        "acc": 0.999,
-        "prec": 0.976,
-        "rec": 0.869,
-        "F1": 0.917
-    },
-    {
-        "id": "XGBoost with SMOTE_upgraded",
-        "records": 20000,
-        "frauds": 12,
-        "legit": 19988,
-        "confusion": [
-            [
-                19977,
+                0,
                 0
             ],
             [
-                11,
-                12
+                0,
+                0
             ]
         ],
-        "acc": 0.999,
-        "prec": 1.0,
-        "rec": 0.521,
-        "F1": 0.685
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
     },
     {
-        "id": "ens",
-        "records": 120000,
-        "frauds": 138,
-        "legit": 119862,
+        "id": "xgboost with SMOTE",
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
         "confusion": [
             [
-                119834,
-                27
+                0,
+                0
             ],
             [
-                28,
-                111
+                0,
+                0
             ]
         ],
-        "acc": 0.999,
-        "prec": 0.803,
-        "rec": 0.798,
-        "F1": 0.8
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
     },
     {
         "id": "Ensemble",
-        "records": 500000,
-        "frauds": 615,
-        "legit": 499385,
+        "records": 0,
+        "frauds": 0,
+        "legit": 0,
         "confusion": [
             [
-                499285,
-                135
-            ],
-            [
-                100,
-                480
-            ]
-        ],
-        "acc": 0.999,
-        "prec": 0.78,
-        "rec": 0.827,
-        "F1": 0.803
-    },
-    {
-        "id": "XGBoost without SMOTE",
-        "records": 300000,
-        "frauds": 333,
-        "legit": 299667,
-        "confusion": [
-            [
-                299649,
-                3
-            ],
-            [
-                18,
-                330
-            ]
-        ],
-        "acc": 0.999,
-        "prec": 0.99,
-        "rec": 0.948,
-        "F1": 0.969
-    },
-    {
-        "id": "v1_fraud_detector",
-        "records": 20000,
-        "frauds": 16,
-        "legit": 19984,
-        "confusion": [
-            [
-                19977,
+                0,
                 0
             ],
             [
-                7,
-                16
+                0,
+                0
             ]
         ],
-        "acc": 0.999,
-        "prec": 1.0,
-        "rec": 0.695,
-        "F1": 0.82
+        "acc": 0,
+        "prec": 0,
+        "rec": 0,
+        "F1": 0
     }
 ]

@@ -1,0 +1,33 @@
+# Files that should NOT be deleted during reset
+# These are the core/original model files
+
+# Core model files in app/models/
+app/models/Ensemble.sav
+app/models/Isolation_forest.sav
+app/models/KMeans.sav
+app/models/XGB with SMOTE.ubj
+app/models/XGB without SMOTE.ubj
+
+# Core data files in resources/data/
+resources/data/Error.csv
+resources/data/Input.csv
+resources/data/Preprocessed_input.csv
+
+# Reset files in app/utils/
+app/utils/model_registry_reset.json
+app/utils/previous_data_reset.json
+
+# Static resources
+resources/loadModels.js
+resources/loadStatsData.js
+resources/loadTaskDetails.js
+resources/loadTasks.js
+resources/loadTrain.js
+resources/style.css
+
+# Templates
+templates/index.html
+templates/stats.html
+templates/taskDetails.html
+templates/tasks.html
+templates/train.html

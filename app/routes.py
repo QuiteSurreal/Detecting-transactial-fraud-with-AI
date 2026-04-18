@@ -156,10 +156,8 @@ async def upgrade(request: Request, background_tasks: BackgroundTasks, file: Upl
     background_tasks.add_task(runTrainJob, task_id, request_data, 1, data)
     
     if "text/html" in request.headers.get("accept", ""):
-        # Browser user: send them to the dashboard
         return RedirectResponse(url="/tasks", status_code=303)
     else:
-        # API/Postman user: give them the data
         return {"status": "PENDING", "task_id": task_id}
 
 
@@ -184,6 +182,11 @@ def runTrainJob(task_id: str, train_data: dict, mode: int, file_data: bytes = No
     if stats:
         wr.writeStatsResult(train_data["model_name"], stats)
 
-#Purge tasks.json, only for the dev time
-with open("app/utils/tasks.json", "w") as f:
-    json.dump([], f)
+@app.post("/reset")
+def resetSystem():
+    try:
+        wr.reset()
+        return {"message": "System reset successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}")
+

@@ -107,7 +107,7 @@ def writeStatsResult(model_name, stats):
                 editJSON(model_name, entry, "app/utils/previous_data.json")
                 break
         else:
-            # Model not found, create new entry
+            # model not found, create new entry
             try:
                 t = threading.Thread(target=makeCM, args=(stats[3], model_name), daemon=True)
                 t.start()
@@ -164,12 +164,9 @@ def editJSON(id, new_data, filename):
 
 def updateModelRegistry(model_name, model_path, description, base_model, upgradable, hyperparameters=None):
     
-
-    # Load existing registry
     with open("app/utils/model_registry.json", 'r') as f:
         registry = json.load(f)
 
-    # Add new model
     registry[model_name] = {
         "path": model_path,
         "description": description,
@@ -178,7 +175,57 @@ def updateModelRegistry(model_name, model_path, description, base_model, upgrada
         "hyperparameters": hyperparameters
     }
 
-    # Save updated registry
     with open("app/utils/model_registry.json", 'w') as f:
         json.dump(registry, f, indent=2)
 
+def reset():
+    import os
+
+    # reset JSON files
+    with open("app/utils/tasks.json", "w") as f:
+        json.dump([], f, indent=4)
+    with open("app/utils/previous_data_reset.json", "r") as r:
+        reset = json.load(r)
+    with open("app/utils/previous_data.json", "w") as f:
+        json.dump(reset, f, indent=4)
+    with open("app/utils/model_registry_reset.json", "r") as r:
+        reset = json.load(r)
+    with open("app/utils/model_registry.json", "w") as f:
+        json.dump(reset, f, indent=4)
+
+    # load protected files list
+    protected_files = set()
+    try:
+        with open("app/utils/protected_files.txt", "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    protected_files.add(line)
+    except FileNotFoundError:
+        print("Warning: protected_files.txt not found, skipping file cleanup")
+
+    # clean up generated model files
+    models_dir = "app/models/"
+    if os.path.exists(models_dir):
+        for filename in os.listdir(models_dir):
+            filepath = os.path.join(models_dir, filename)
+            if filepath not in protected_files and os.path.isfile(filepath):
+                try:
+                    os.remove(filepath)
+                    print(f"Removed generated model file: {filepath}")
+                except Exception as e:
+                    print(f"Error removing {filepath}: {e}")
+
+    # clean up generated confusion matrix images
+    temp_dir = "resources/temp/"
+    if os.path.exists(temp_dir):
+        for filename in os.listdir(temp_dir):
+            if filename.startswith("cm_") and filename.endswith(".png"):
+                filepath = os.path.join(temp_dir, filename)
+                try:
+                    os.remove(filepath)
+                    print(f"Removed generated confusion matrix: {filepath}")
+                except Exception as e:
+                    print(f"Error removing {filepath}: {e}")
+
+    print("Reset completed successfully!")
