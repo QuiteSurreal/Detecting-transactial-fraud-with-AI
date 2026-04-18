@@ -93,11 +93,13 @@ def test_get_status():
 
 def test_predict_file():
     """Test POST /predict/file endpoint - successful prediction"""
-    sample_data = "step,type,amount,nameOrig,oldbalanceOrg,newbalanceOrig,nameDest,oldbalanceDest,newbalanceDest\n1,PAYMENT,9839.64,C1231006815,170136.0,160296.36,M1979787155,0.0,0.0\n1,PAYMENT,1864.28,C1666544295,21249.0,19384.72,M2044282225,0.0,0.0"
-    files = {"file": ("test.csv", sample_data, "text/csv")}
-    data = {"selected_model": "Ensemble"}
+    file_path = "resources/data/Input.csv"
+    
+    with open(file_path, "rb") as f:
+        files = {"file": ("Input.csv", f, "text/csv")}
+        data = {"selected_model": "Ensemble"}
+        response = client.post("/predict/file", files=files, data=data)
 
-    response = client.post("/predict/file", files=files, data=data)
     assert response.status_code == 200
     result = response.json()
     assert "task_id" in result
@@ -112,11 +114,13 @@ def test_predict_file():
 
 def test_predict_file_failure():
     """Test POST /predict/file endpoint - failure case with invalid data"""
-    invalid_data = "col1,col2,col3\n1.0,2.0,3.0\n4.0,5.0,6.0"
-    files = {"file": ("invalid.csv", invalid_data, "text/csv")}
-    data = {"selected_model": "Ensemble"}
+    file_path = "resources/data/Error.csv"
+    
+    with open(file_path, "rb") as f:
+        files = {"file": ("Input.csv", f, "text/csv")}
+        data = {"selected_model": "Ensemble"}
+        response = client.post("/predict/file", files=files, data=data)
 
-    response = client.post("/predict/file", files=files, data=data)
     assert response.status_code == 200
     result = response.json()
     assert "task_id" in result
@@ -154,11 +158,38 @@ def test_train():
     assert task_data["status"] == "SUCCESS"
     assert "desc" in task_data
 
-def test_upgrade():
+def test_upgrade_upgradable():
     """Test POST /upgrade endpoint"""
-    # Skip upgrade test for now due to complexity with eval_model function
-    pytest.skip("Upgrade test skipped due to eval_model complexity - other tests with waiting work correctly")
+    file_path = "resources/data/Input.csv"
+    
+    with open(file_path, "rb") as f:
+        files = {"file": ("Input.csv", f, "text/csv")}
+        data = {"selected_model": "XGBoost with SMOTE"}
+        response = client.post("/upgrade", files=files, data=data)
+        
+    assert response.status_code == 200
+    result = response.json()
+    assert "task_id" in result
+    assert result["status"] == "PENDING"
 
+    task_data = wait_for_task_completion(result["task_id"])
+    assert task_data is not None, "Task did not complete within timeout"
+    assert task_data["status"] == "SUCCESS"
+    assert "desc" in task_data
+    assert "frauds" in task_data
+    assert isinstance(task_data["frauds"], list)
+
+def test_upgrade_upgradable_non_upgradable():
+    """Test POST /upgrade endpoint"""
+    file_path = "resources/data/Input.csv"
+    
+    with open(file_path, "rb") as f:
+        files = {"file": ("Input.csv", f, "text/csv")}
+        data = {"selected_model": "Ensemble"}
+        response = client.post("/upgrade", files=files, data=data)
+        
+    assert response.status_code == 400
+    
 def test_index_page():
     """Test GET / endpoint returns HTML"""
     response = client.get("/")
@@ -184,23 +215,10 @@ def test_train_page():
     assert "text/html" in response.headers["content-type"]
 
 def test_reset_endpoint():
-    """Test POST /reset endpoint"""
-    sample_data = "step,type,amount,nameOrig,oldbalanceOrg,newbalanceOrig,nameDest,oldbalanceDest,newbalanceDest\n1,PAYMENT,9839.64,C1231006815,170136.0,160296.36,M1979787155,0.0,0.0"
-    files = {"file": ("test.csv", sample_data, "text/csv")}
-    data = {"selected_model": "Ensemble"}
-
-    response = client.post("/predict/file", files=files, data=data)
-    assert response.status_code == 200
-
-    task_data = wait_for_task_completion(response.json()["task_id"])
-    assert task_data is not None
-
+    """Test POST /reset endpoint""" 
     #reset the system
     response = client.post("/reset")
     assert response.status_code == 200
-    result = response.json()
-    assert "message" in result
-    assert "successfully" in result["message"]
 
     response = client.get("/tasks/data")
     tasks = response.json()

@@ -31,7 +31,7 @@ def runUnsupervisedPrediction(df: pd.DataFrame):
     
     results = []
     cluster_idx = 0
-    for i, is_anomaly in enumerate(anomalies):
+    for is_anomaly in enumerate(anomalies):
         if is_anomaly:
             results.append({
                 'is_anomaly': True,

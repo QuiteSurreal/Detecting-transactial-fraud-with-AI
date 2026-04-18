@@ -80,7 +80,6 @@ def preprocessFile(data, model_name):
         anomalous_entries = dfRaw[dfRaw['is_anomaly'] == True].copy()
         anomaly_count = len(anomalous_entries)
         normal_count = len(dfRaw) - anomaly_count
-        #cluster_count = int(anomalous_entries['cluster'].dropna().nunique())
         cluster_count = 3
         desc = {
             "total_records": len(dfRaw),
@@ -128,7 +127,7 @@ def preprocessForTrain(data):
     if errors:
         return None, errors
     
-    df = preprocess(df, "xgb")  # Assuming XGB preprocessing for upgrade
+    df = preprocess(df, "xgb")
     return df, y
 
 

@@ -1,51 +1,51 @@
 {
-  "XGBoost without SMOTE": {
-    "path": "app/models/XGB without SMOTE.ubj",
-    "description": "Optimized XGBoost with tuned params",
-    "base_model": "xgb",
-    "upgradable": 1,
-    "hyperparameters": {
-      "n_estimators": 500,
-      "max_depth": 6,
-      "learning_rate": 0.01,
-      "scale_pos_weight": 99.9,
-      "eval_metric": "logloss"
+    "XGBoost without SMOTE": {
+        "path": "app/models/XGB without SMOTE.ubj",
+        "description": "Optimized XGBoost with tuned params",
+        "base_model": "xgb",
+        "upgradable": 1,
+        "hyperparameters": {
+            "n_estimators": 500,
+            "max_depth": 6,
+            "learning_rate": 0.01,
+            "scale_pos_weight": 99.9,
+            "eval_metric": "logloss"
+        }
+    },
+    "XGBoost with SMOTE": {
+        "path": "app/models/XGB with SMOTE.ubj",
+        "description": "Optimized XGBoost with tuned params",
+        "base_model": "xgb_smote",
+        "upgradable": 1,
+        "hyperparameters": {
+            "n_estimators": 1000,
+            "max_depth": 6,
+            "learning_rate": 0.01,
+            "subsample": 0.8,
+            "eval_metric": "logloss",
+            "smote_sampling_strategy": "auto"
+        }
+    },
+    "Ensemble": {
+        "path": "app/models/Ensemble.sav",
+        "description": "Ensemble made up from Random Forest and SMOTE XGB",
+        "base_model": "ensemble",
+        "upgradable": 0,
+        "hyperparameters": {
+            "rf_n_estimators": 500,
+            "rf_max_depth": 6,
+            "xgb_n_estimators": 1000,
+            "xgb_max_depth": 6,
+            "xgb_learning_rate": 0.01,
+            "xgb_subsample": 0.8,
+            "xgb_eval_metric": "logloss",
+            "smote_sampling_strategy": "auto"
+        }
+    },
+    "Isolation Forest + KMeans": {
+        "pathI": "app/models/Isolation_forest.sav",
+        "pathK": "app/models/KMeans.sav",
+        "upgradable": 0,
+        "description": "Unsupervised models made to detect anomalies and distribute them into different clusters"
     }
-  },
-  "XGBoost with SMOTE": {
-    "path": "app/models/XGB with SMOTE.ubj",
-    "description": "Optimized XGBoost with tuned params",
-    "base_model": "xgb_smote",
-    "upgradable": 1,
-    "hyperparameters": {
-      "n_estimators": 1000,
-      "max_depth": 6,
-      "learning_rate": 0.01,
-      "subsample": 0.8,
-      "eval_metric": "logloss",
-      "smote_sampling_strategy": "auto"
-    }
-  },
-  "Ensemble": {
-    "path": "app/models/Ensemble.sav",
-    "description": "Ensemble made up from Random Forest and SMOTE XGB",
-    "base_model": "ensemble",
-    "upgradable": 0,
-    "hyperparameters": {
-      "rf_n_estimators": 500,
-      "rf_max_depth": 6,
-      "xgb_n_estimators": 1000,
-      "xgb_max_depth": 6,
-      "xgb_learning_rate": 0.01,
-      "xgb_subsample": 0.8,
-      "xgb_eval_metric": "logloss",
-      "smote_sampling_strategy": "auto"
-    }
-  },
-  "Isolation Forest + KMeans": {
-    "pathI": "app/models/Isolation_forest.sav",
-    "pathK": "app/models/KMeans.sav",
-    "upgradable": 0,
-    "description": "Unsupervised models made to detect anomalies and distribute them into different clusters"
-  }
 }

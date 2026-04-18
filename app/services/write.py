@@ -181,7 +181,7 @@ def updateModelRegistry(model_name, model_path, description, base_model, upgrada
 def reset():
     import os
 
-    # reset JSON files
+    #reset JSON files
     with open("app/utils/tasks.json", "w") as f:
         json.dump([], f, indent=4)
     with open("app/utils/previous_data_reset.json", "r") as r:
@@ -193,7 +193,7 @@ def reset():
     with open("app/utils/model_registry.json", "w") as f:
         json.dump(reset, f, indent=4)
 
-    # load protected files list
+    #load protected files list
     protected_files = set()
     try:
         with open("app/utils/protected_files.txt", "r") as f:
@@ -202,9 +202,9 @@ def reset():
                 if line and not line.startswith("#"):
                     protected_files.add(line)
     except FileNotFoundError:
-        print("Warning: protected_files.txt not found, skipping file cleanup")
+        print("protected_files.txt not found, skipping file cleanup")
 
-    # clean up generated model files
+    #clean up generated model files
     models_dir = "app/models/"
     if os.path.exists(models_dir):
         for filename in os.listdir(models_dir):
@@ -216,7 +216,7 @@ def reset():
                 except Exception as e:
                     print(f"Error removing {filepath}: {e}")
 
-    # clean up generated confusion matrix images
+    #clean up generated confusion matrix images
     temp_dir = "resources/temp/"
     if os.path.exists(temp_dir):
         for filename in os.listdir(temp_dir):
