@@ -1,23 +1,23 @@
 [
     {
         "id": "Total",
-        "records": 0,
-        "frauds": 0,
-        "legit": 0,
+        "records": 100000,
+        "frauds": 111,
+        "legit": 99889,
         "confusion": [
             [
-                0,
-                0
+                99883,
+                1
             ],
             [
-                0,
-                0
+                6,
+                110
             ]
         ],
-        "acc": 0,
-        "prec": 0,
-        "rec": 0,
-        "F1": 0
+        "acc": 0.999,
+        "prec": 0.99,
+        "rec": 0.948,
+        "F1": 0.969
     },
     {
         "id": "xgboost without SMOTE",
@@ -78,5 +78,25 @@
         "prec": 0,
         "rec": 0,
         "F1": 0
+    },
+    {
+        "id": "XGBoost without SMOTE",
+        "records": 100000,
+        "frauds": 111,
+        "legit": 99889,
+        "confusion": [
+            [
+                99883,
+                1
+            ],
+            [
+                6,
+                110
+            ]
+        ],
+        "acc": 0.999,
+        "prec": 0.99,
+        "rec": 0.948,
+        "F1": 0.969
     }
 ]

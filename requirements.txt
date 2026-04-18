@@ -1,0 +1,13 @@
+xgboost
+pandas
+scikit-learn
+imblearn
+joblib
+numpy
+matplotlib
+seaborn
+fastapi
+pydantic
+uvicorn
+pytest
+python-multipart
