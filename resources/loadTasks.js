@@ -73,5 +73,4 @@ function loadTasks() {
           });
       }
 
-      // Load tasks on page load
       document.addEventListener('DOMContentLoaded', loadTasks);

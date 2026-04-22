@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const trainButton = document.getElementById('trainButton');
   const resetButton = document.getElementById('resetButton');
 
-  // Update UI when model selection changes
   baseModelSelect.addEventListener('change', function() {
     const selected = this.value;
     const descDiv = document.getElementById('modelDescription');
@@ -55,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Show description
     const config = modelConfigs[selected];
     descDiv.textContent = config.description;
     descDiv.style.display = 'block';
@@ -87,34 +85,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Form submission
   trainButton.addEventListener('click', async function() {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.style.display = 'none';
+    errorDiv.textContent = '';
+
     const modelName = document.getElementById('modelName').value.trim();
     const baseModel = document.getElementById('baseModel').value;
 
-    // Validation
-    if (!modelName || !baseModel) {
+    let errors = [];
+    if (!modelName) {
+      errors.push('Model name is required.');
+    }
+    if (!baseModel) {
+      errors.push('Base model must be selected.');
+    }
+
+    const config = modelConfigs[baseModel];
+    const hyperparameters = {};
+    for (const param of config.params) {
+      const input = document.getElementById(param.name);
+      if (input) {
+        const value = param.type === 'number' ? parseFloat(input.value) : input.value;
+        if (param.type === 'number') {
+          if (isNaN(value) || value < param.min || value > param.max) {
+            errors.push(`${param.label} must be between ${param.min} and ${param.max}.`);
+          }
+        }
+        hyperparameters[param.name] = value;
+      }
+    }
+
+    if (errors.length > 0) {
+      errorDiv.innerHTML = errors.join('<br>');
+      errorDiv.style.display = 'block';
       return;
     }
 
-    // Collect hyperparameters
-    const config = modelConfigs[baseModel];
-    const hyperparameters = {};
-    config.params.forEach(param => {
-      const input = document.getElementById(param.name);
-      if (input) {
-        hyperparameters[param.name] = isNaN(input.value) ? input.value : parseFloat(input.value);
-      }
-    });
+    const upgradable = 1;
 
     if (baseModel == "ensemble") {
       upgradable = 0;
     }
-    else {
-      upgradable = 1;
-    }
 
-    // Prepare request
     const trainData = {
       model_name: modelName,
       base_model: baseModel,
@@ -123,6 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     trainButton.disabled = true;
+
+    console.log("whih");
 
     try {
       await fetch('/train', {
@@ -134,16 +149,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     } catch (error) {
       console.error('Training request failed:', error);
+      errorDiv.textContent = error.message;
+      errorDiv.style.display = 'block';
     } finally {
       trainButton.disabled = false;
     }
   });
+
+
 
   // Reset button functionality
   resetButton.addEventListener('click', function() {
     document.getElementById('modelName').value = '';
     document.getElementById('baseModel').value = '';
     document.getElementById('modelDescription').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
     document.getElementById('parametersContainer').innerHTML = '';
     trainButton.disabled = true;
   });

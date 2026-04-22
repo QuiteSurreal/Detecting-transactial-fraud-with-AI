@@ -2,7 +2,6 @@
 let allStatsData = [];
 
 function loadStatsData() {
-    // Load statistics data
     fetch('/statsData')
       .then(response => response.json())
       .then(data => {
@@ -12,7 +11,6 @@ function loadStatsData() {
       })
       .catch(error => console.error('Error loading statistics:', error));
 
-    // Handle model selection
     document.getElementById('modelSelector').addEventListener('change', function() {
       const selectedModel = this.value;
       if (selectedModel) {
@@ -28,11 +26,9 @@ function loadStatsData() {
     function populateStatistics(data) {
       if (!data || data.length === 0) return;
 
-      // Find total entry
       const totalStats = data.find(item => item.id === 'Total');
       
       if (totalStats) {
-        // Update summary cards
         document.getElementById('totalRecords').textContent = totalStats.records.toLocaleString();
         document.getElementById('totalFrauds').textContent = totalStats.frauds.toLocaleString();
         document.getElementById('totalLegit').textContent = totalStats.legit.toLocaleString();
@@ -42,7 +38,6 @@ function loadStatsData() {
           : '0.00';
         document.getElementById('fraudRate').textContent = fraudRate + '%';
 
-        // Update metrics
         document.getElementById('accuracy').textContent = parseFloat(totalStats.acc).toFixed(3);
         document.getElementById('precision').textContent = parseFloat(totalStats.prec).toFixed(3);
         document.getElementById('recall').textContent = parseFloat(totalStats.rec).toFixed(3);
@@ -50,7 +45,6 @@ function loadStatsData() {
 
         loadConfusionMatrixImage("Total");
 
-        // Draw data distribution chart
         drawDataDistribution(totalStats.frauds, totalStats.legit);
       }
     }
@@ -82,16 +76,13 @@ function loadStatsData() {
         : '0.00';
       document.getElementById('modelFraudRate').textContent = fraudRate + '%';
 
-      // Update model metrics
       document.getElementById('modelAccuracy').textContent = parseFloat(modelData.acc).toFixed(3);
       document.getElementById('modelPrecision').textContent = parseFloat(modelData.prec).toFixed(3);
       document.getElementById('modelRecall').textContent = parseFloat(modelData.rec).toFixed(3);
       document.getElementById('modelF1').textContent = parseFloat(modelData.F1).toFixed(3);
 
-      // Load confusion matrix image
       loadConfusionMatrixImage(modelData.id);
 
-      // Scroll to model dashboard
       setTimeout(() => {
         document.getElementById('modelDashboard').scrollIntoView({ behavior: 'smooth' });
       }, 100);
