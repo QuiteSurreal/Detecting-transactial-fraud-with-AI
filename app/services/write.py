@@ -8,6 +8,18 @@ import seaborn as sns
 import portalocker
 
 def writeTaskResult(task_id, success, result, frauds):
+    """
+    Writes task completion result to tasks.json with success/failure status and details.
+    
+    Args:
+        task_id (str): Unique task identifier
+        success (bool): Whether task succeeded
+        result: Task description or error messages
+        frauds: List of fraud records detected
+    
+    Returns:
+        None
+    """
     if success:
         entry = {
         "id": task_id,
@@ -26,6 +38,17 @@ def writeTaskResult(task_id, success, result, frauds):
     editJSON(task_id, entry, "app/utils/tasks.json")
 
 def writeStatsResult(model_name, stats):
+    """
+    Aggregates model performance metrics into cumulative statistics, weighted by dataset size.
+    Averages metrics with existing model data and updates confusion matrix visualizations.
+    
+    Args:
+        model_name (str): Name of the trained model
+        stats (list): [records, frauds, legit, confusion_matrix, accuracy, precision, recall, f1, explanations]
+    
+    Returns:
+        None
+    """
     with open("app/utils/previous_data.json") as f:
         prev = json.load(f)
 
@@ -109,7 +132,16 @@ def writeStatsResult(model_name, stats):
         
 
 def makeCM(conf, name):
-
+    """
+    Generates and saves a confusion matrix heatmap visualization.
+    
+    Args:
+        conf (list): 2x2 confusion matrix array [[TN, FP], [FN, TP]]
+        name (str): Model or metric name for output file
+    
+    Returns:
+        None
+    """
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.heatmap(conf, annot=True, fmt="d", cmap="Blues", xticklabels=["Not Fraud", "Fraud"], yticklabels=["Not Fraud", "Fraud"], ax=ax)
     ax.set_xlabel("Predicted Label")
@@ -122,6 +154,16 @@ def makeCM(conf, name):
 
 
 def writeJSON(new_data, filename):
+    """
+    Appends new data to JSON file.
+    
+    Args:
+        new_data (dict): Data to append
+        filename (str): Path to JSON file
+    
+    Returns:
+        None
+    """
     with open(filename, 'r+') as file:
         portalocker.lock(file, portalocker.LOCK_EX)
         file_data = json.load(file)
@@ -131,6 +173,17 @@ def writeJSON(new_data, filename):
 
 #replace at the same pos
 def editJSON(id, new_data, filename):
+    """
+    Finds entry by ID and replaces it in JSON file.
+    
+    Args:
+        id (str): Entry ID to find and replace
+        new_data (dict): New data to replace with
+        filename (str): Path to JSON file
+    
+    Returns:
+        None
+    """
     with open(filename, 'r+') as file:
         portalocker.lock(file, portalocker.LOCK_EX)
         file_data = json.load(file)
@@ -145,7 +198,20 @@ def editJSON(id, new_data, filename):
         json.dump(file_data, file, indent=4)
 
 def updateModelRegistry(model_name, model_path, description, base_model, upgradable, hyperparameters=None):
+    """
+    Adds new model entry in the model registry.
     
+    Args:
+        model_name (str): Display name for the model
+        model_path (str): File path where model is saved
+        description (str): Model description
+        base_model (str): Base model type ('xgb', 'xgb_smote', 'ensemble')
+        upgradable (int): 1 if model can be fine-tuned, 0 otherwise
+        hyperparameters (dict, optional): Hyperparameter configuration used
+    
+    Returns:
+        None
+    """
     with open("app/utils/model_registry.json", 'r') as f:
         registry = json.load(f)
 
@@ -162,6 +228,15 @@ def updateModelRegistry(model_name, model_path, description, base_model, upgrada
         json.dump(registry, f, indent=2)
 
 def reset():
+    """
+    Resets system to initial state
+    
+    Args:
+        None
+    
+    Returns:
+        None
+    """
     import os
 
     #reset JSON files

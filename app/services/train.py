@@ -24,6 +24,18 @@ from io import StringIO
 
 
 def prepareTrain(train_data, selected_model, mode, file_data=None):
+    """
+    Orchestrates the training pipeline: loads data, preprocesses, splits, and delegates to appropriate trainer.
+    
+    Args:
+        train_data (dict): Configuration with model_name and hyperparameters
+        selected_model (str): Base model type ('xgb', 'xgb_smote', 'ensemble')
+        mode (int): 0=new training, 1=model upgrade
+        file_data (bytes): Optional CSV file data for upload-based training
+    
+    Returns:
+        tuple: (success, desc, frauds, stats) - success flag, task description, fraud records, evaluation stats
+    """
     if file_data and mode == 1:
         file_data = StringIO(file_data.decode("utf-8"))
         try:
@@ -74,7 +86,18 @@ def prepareTrain(train_data, selected_model, mode, file_data=None):
         return 0, [], [], []
 
 def trainXGB(train_data, X_train, X_test, y_train, y_test, raw_test):
-
+    """
+    Trains a standalone XGBoost classifier without oversampling.
+    
+    Args:
+        train_data (dict): Contains model_name and hyperparameters
+        X_train, X_test: Preprocessed feature data for training and testing
+        y_train, y_test: Labels for training and testing
+        raw_test: Original unpreprocessed test records for fraud display
+    
+    Returns:
+        tuple: (success=1, desc, frauds, stats) - results with evaluation metrics
+    """
     model = xgb.XGBClassifier(
         n_estimators=train_data["hyperparameters"]["n_estimators"],
         max_depth=train_data["hyperparameters"]["max_depth"],
@@ -108,7 +131,18 @@ def trainXGB(train_data, X_train, X_test, y_train, y_test, raw_test):
 
 
 def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test, raw_test):
-
+    """
+    Trains XGBoost with SMOTE oversampling for imbalanced data handling.
+    
+    Args:
+        train_data (dict): Contains model_name and hyperparameters
+        X_train, X_test: Preprocessed feature data for training and testing
+        y_train, y_test: Labels for training and testing
+        raw_test: Original unpreprocessed test records for fraud display
+    
+    Returns:
+        tuple: (success=1, desc, frauds, stats) - results with evaluation metrics
+    """
     pipeline = Pipeline(steps=[
         ('smote', SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])),
         ('model', xgb.XGBClassifier(
@@ -144,7 +178,18 @@ def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test, raw_test):
     return 1, desc, frauds, stats
 
 def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test, raw_test):
+    """
+    Fine-tunes an existing XGBoost model with new training data.
     
+    Args:
+        upgrade_data (dict): Contains model_path, model_name, base_model, and hyperparameters
+        X_train, X_test: Preprocessed feature data for training and testing
+        y_train, y_test: Labels for training and testing
+        raw_test: Original unpreprocessed test records for fraud display
+    
+    Returns:
+        tuple: (success, desc, frauds, stats) or (0, [error], [], None) on failure
+    """
     print(upgrade_data['model_path'])
 
 
@@ -192,7 +237,18 @@ def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test, raw_test):
 
 
 def trainEnsemble(train_data, X_train, X_test, y_train, y_test, raw_test):
-
+    """
+    Trains a stacking ensemble combining Random Forest and XGBoost with Logistic Regression meta-learner.
+    
+    Args:
+        train_data (dict): Contains model_name and hyperparameters
+        X_train, X_test: Preprocessed feature data for training and testing
+        y_train, y_test: Labels for training and testing
+        raw_test: Original unpreprocessed test records for fraud display
+    
+    Returns:
+        tuple: (success=1, desc, frauds, stats) - results with evaluation metrics
+    """
     smote = SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])
 
     X_train_n, y_train_n = smote.fit_resample(X_train, y_train)
@@ -239,7 +295,19 @@ def trainEnsemble(train_data, X_train, X_test, y_train, y_test, raw_test):
     return 1, desc, frauds, stats
 
 def evalModel(y_pred, X_test, y_test, exp, raw_test=None):
-
+    """
+    Evaluates model predictions and compiles performance metrics and fraud records.
+    
+    Args:
+        y_pred: Model predictions (0/1 for fraud/legit)
+        X_test: Preprocessed test features
+        y_test: True test labels
+        exp (dict): Feature importance explanations from SHAP
+        raw_test (DataFrame, optional): Original unpreprocessed test records for fraud display
+    
+    Returns:
+        tuple: (desc, frauds, stats) - description dict, fraud records list, metrics stats list
+    """
     fraud_count = int((y_pred == 1).sum())
     legit_count = int((y_pred == 0).sum())
 

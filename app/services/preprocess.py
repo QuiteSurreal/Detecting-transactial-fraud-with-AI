@@ -20,6 +20,16 @@ EXPECTED_SCHEMA = {
 }
 
 def preprocessFile(data, model_name):
+    """
+    Preprocesses file data, runs prediction, and computes metrics.
+    
+    Args:
+        data: CSV file stream
+        model_name (str): Name of the model to use for prediction
+    
+    Returns:
+        tuple: (success, desc, frauds, stats) - success flag, metrics dict, fraud records, evaluation stats
+    """
     try:
         dfRaw = pd.read_csv(data, delimiter = ',', nrows = 100000)
     except Exception as e:
@@ -93,7 +103,16 @@ def preprocessFile(data, model_name):
     
 
 def preprocess(df: pd.DataFrame, model_name):
-
+    """
+    Transforms raw features: drops unused columns, creates derived features, encodes categoricals, normalizes.
+    
+    Args:
+        df (pd.DataFrame): Raw feature data
+        model_name (str): Used to determine if scaling needed for unsupervised models
+    
+    Returns:
+        pd.DataFrame: Preprocessed features ready for model input
+    """
     if ('isFlaggedFraud' in df):
         df = df.drop('isFlaggedFraud', axis=1)
 
@@ -115,6 +134,15 @@ def preprocess(df: pd.DataFrame, model_name):
 
 
 def validateData(data: pd.DataFrame):
+    """
+    Validates data schema against expected structure and column types.
+    
+    Args:
+        data (pd.DataFrame): Input data to validate
+    
+    Returns:
+        list: List of error messages (empty if valid)
+    """
     errors = []
 
     for col, expectedType in EXPECTED_SCHEMA.items():

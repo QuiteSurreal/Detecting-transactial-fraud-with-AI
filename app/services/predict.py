@@ -7,6 +7,16 @@ import shap
 MODEL_PATH = "app/models"
 
 def runPrediction(model_name, df: pd.DataFrame):
+    """
+    Routes prediction to supervised or unsupervised model and returns predictions with feature importance.
+    
+    Args:
+        model_name (str): Registered model name to use for prediction
+        df (pd.DataFrame): Preprocessed features
+    
+    Returns:
+        tuple: (predictions, explanations) - fraud predictions and SHAP feature importance dict
+    """
     if model_name == "Isolation Forest + KMeans":
         return runUnsupervisedPrediction(df)
     else:
@@ -19,6 +29,15 @@ def runPrediction(model_name, df: pd.DataFrame):
         return result, exp
 
 def runUnsupervisedPrediction(df: pd.DataFrame):
+    """
+    Uses Isolation Forest for anomaly detection and KMeans for clustering anomalies.
+    
+    Args:
+        df (pd.DataFrame): Preprocessed features
+    
+    Returns:
+        tuple: (results, None) - list of dicts with is_anomaly and cluster assignment, no explanations
+    """
     with open("app/utils/model_registry.json") as f:
         registry = json.load(f)
         model_info = registry["Isolation Forest + KMeans"]
@@ -48,7 +67,16 @@ def runUnsupervisedPrediction(df: pd.DataFrame):
     return results, None
 
 def makeExplanation(model, df):
-
+    """
+    Computes SHAP-based feature importance
+    
+    Args:
+        model: Trained supervised model (XGBoost or ensemble)
+        df (pd.DataFrame): Preprocessed features
+    
+    Returns:
+        dict: Feature name: SHAP importance value, sorted descending by absolute importance
+    """
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(df)
     features = df.columns
@@ -61,6 +89,15 @@ def makeExplanation(model, df):
 
 
 def loadModel(model_name):
+    """
+    Loads a registered model from disk and returns model object with ensemble flag.
+    
+    Args:
+        model_name (str): Registered model name from model_registry.json
+    
+    Returns:
+        tuple: (model_object, is_ensemble_flag) - loaded model and 1 if ensemble else 0
+    """
     with open("app/utils/model_registry.json") as f:
         registry = json.load(f)
         model_info = registry[model_name]
