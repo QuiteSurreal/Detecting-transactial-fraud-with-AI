@@ -1,11 +1,11 @@
 import json
 import numpy as np
 import math
-import threading
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+import portalocker
 
 def writeTaskResult(task_id, success, result, frauds):
     if success:
@@ -14,23 +14,6 @@ def writeTaskResult(task_id, success, result, frauds):
         "status": "SUCCESS",
         "desc": result,
         "frauds": frauds
-        }
-
-    else:
-        entry = {
-        "id": task_id,
-        "status": "FAIL",
-        "desc": result
-        }
-    
-    editJSON(task_id, entry, "app/utils/tasks.json")
-
-def writeTrainResult(task_id, success, result):
-    if success:
-        entry = {
-        "id": task_id,
-        "status": "SUCCESS",
-        "desc": result,
         }
 
     else:
@@ -57,10 +40,9 @@ def writeStatsResult(model_name, stats):
             ]
         ]
         try:
-            t = threading.Thread(target=makeCM, args=(conf, "Total"), daemon=True)
-            t.start()
-        except Exception:
-            path = makeCM(conf, "Total")
+            makeCM(conf, "Total")
+        except Exception as e:
+            print(f"Error generating confusion matrix: {e}")
         wg = [stats[0], prev[0]["records"]]
         entry = {
             "id": "Total",
@@ -87,11 +69,11 @@ def writeStatsResult(model_name, stats):
                         stats[3][1][1] + prev[i]["confusion"][1][1]
                     ]
                 ]
+                    
                 try:
-                    t = threading.Thread(target=makeCM, args=(conf, model_name), daemon=True)
-                    t.start()
-                except Exception:
-                    path = makeCM(conf, model_name)
+                    makeCM(conf, model_name)
+                except Exception as e:
+                    print(f"Error generating confusion matrix: {e}")
                 wg = [stats[0], prev[i]["records"]]
                 entry = {
                 "id": model_name,
@@ -109,10 +91,9 @@ def writeStatsResult(model_name, stats):
         else:
             # model not found, create new entry
             try:
-                t = threading.Thread(target=makeCM, args=(stats[3], model_name), daemon=True)
-                t.start()
-            except Exception:
-                path = makeCM(stats[3], model_name)
+                makeCM(stats[3], model_name)
+            except Exception as e:
+                print(f"Error generating confusion matrix: {e}")
             entry = {
                 "id": model_name,
                 "records": stats[0],
@@ -138,11 +119,11 @@ def makeCM(conf, name):
     output_path = f"./resources/temp/cm_{name}.png"
     fig.savefig(output_path, bbox_inches="tight")
     plt.close(fig)
-    return output_path
 
 
 def writeJSON(new_data, filename):
     with open(filename, 'r+') as file:
+        portalocker.lock(file, portalocker.LOCK_EX)
         file_data = json.load(file)
         file_data.append(new_data)
         file.seek(0)
@@ -151,6 +132,7 @@ def writeJSON(new_data, filename):
 #replace at the same pos
 def editJSON(id, new_data, filename):
     with open(filename, 'r+') as file:
+        portalocker.lock(file, portalocker.LOCK_EX)
         file_data = json.load(file)
 
         for i, obj in enumerate(file_data):
@@ -176,6 +158,7 @@ def updateModelRegistry(model_name, model_path, description, base_model, upgrada
     }
 
     with open("app/utils/model_registry.json", 'w') as f:
+        portalocker.lock(f, portalocker.LOCK_EX)
         json.dump(registry, f, indent=2)
 
 def reset():

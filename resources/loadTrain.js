@@ -122,9 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    const upgradable = 1;
+    let upgradable = 1;
 
-    if (baseModel == "ensemble") {
+    if (baseModel === "ensemble") {
       upgradable = 0;
     }
 
@@ -137,28 +137,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     trainButton.disabled = true;
 
-    console.log("whih");
+    const response = await fetch('/train', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(trainData)
+    });
 
-    try {
-      await fetch('/train', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(trainData)
-      });
-    } catch (error) {
-      console.error('Training request failed:', error);
-      errorDiv.textContent = error.message;
+    if (response.ok) {
+      window.location.href = '/tasks';
+    } else {
+      const errorData = await response.json();
+      errorDiv.textContent = errorData.detail || 'Training failed';
       errorDiv.style.display = 'block';
-    } finally {
-      trainButton.disabled = false;
     }
+
+    trainButton.disabled = false;
   });
 
 
 
-  // Reset button functionality
   resetButton.addEventListener('click', function() {
     document.getElementById('modelName').value = '';
     document.getElementById('baseModel').value = '';

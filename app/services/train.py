@@ -15,6 +15,7 @@ import joblib
 
 from app.services import write as wr
 from app.services import preprocess as prep
+from app.services import predict as pred
 from io import StringIO
 
 
@@ -24,33 +25,55 @@ from io import StringIO
 
 def prepareTrain(train_data, selected_model, mode, file_data=None):
     if file_data and mode == 1:
-        data = StringIO(file_data.decode("utf-8"))
-        X, y = prep.preprocessForTrain(data)
-        if X is None:
-            return 0, y, [], None 
-
-        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+        file_data = StringIO(file_data.decode("utf-8"))
+        try:
+            dfRaw = pd.read_csv(file_data, delimiter=',', nrows=100000)
+        except Exception as e:
+            return 0, [f"Failed to read CSV file: {str(e)}"], [], None
     else:
         try:
-            df = pd.read_csv('./resources/data/Preprocessed_input.csv', delimiter=',')
+            dfRaw = pd.read_csv('./resources/data/Input.csv', delimiter=',', nrows=100000)
         except Exception as e:
             return 0, [f"Failed to read CSV file: {str(e)}"], [], None
 
-        X = df.drop('isFraud', axis=1)
-        y = df['isFraud']
- 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+    if 'isFraud' not in dfRaw.columns:
+        return 0, ["Missing 'isFraud' column in training data"], [], None
+
+    y = dfRaw['isFraud'].values
+    dfRaw = dfRaw.drop('isFraud', axis=1)
+
+    errors = prep.validateData(dfRaw)
+    if errors:
+        return 0, errors, [], None
+
+    df = prep.preprocess(dfRaw.copy(), "xgb")
+    if df is None:
+        return 0, ["Failed to preprocess training data"], [], None
+    
+    raw_train, raw_test = train_test_split(
+        dfRaw,
+        test_size=0.2
+    )
+
+    X_train, X_test, y_train, y_test= train_test_split(
+        df,
+        y,
+        stratify=y,
+        test_size=0.2
+    )
 
     if (mode == 1):
-        return upgradeXGB(train_data, X_train, X_test, y_train, y_test)
+        return upgradeXGB(train_data, X_train, X_test, y_train, y_test, raw_test)
     elif (selected_model == "xgb"):
-        return trainXGB(train_data, X_train, X_test, y_train, y_test)
+        return trainXGB(train_data, X_train, X_test, y_train, y_test, raw_test)
     elif (selected_model == "xgb_smote"):
-        return trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test)
+        return trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test, raw_test)
     elif (selected_model == "ensemble"):
-        return trainEnsemble(train_data, X_train, X_test, y_train, y_test)
+        return trainEnsemble(train_data, X_train, X_test, y_train, y_test, raw_test)
+    else:
+        return 0, [], [], []
 
-def trainXGB(train_data, X_train, X_test, y_train, y_test):
+def trainXGB(train_data, X_train, X_test, y_train, y_test, raw_test):
 
     model = xgb.XGBClassifier(
         n_estimators=train_data["hyperparameters"]["n_estimators"],
@@ -63,8 +86,8 @@ def trainXGB(train_data, X_train, X_test, y_train, y_test):
 
     model.fit(X_train, y_train)
 
-    model_path = f"app/models/{train_data['model_name']}.sav"
-    joblib.dump(model, model_path)
+    model_path = f"app/models/{train_data['model_name']}.ubj"
+    model.save_model(model_path)
 
     wr.updateModelRegistry(
         train_data['model_name'], 
@@ -76,13 +99,15 @@ def trainXGB(train_data, X_train, X_test, y_train, y_test):
     )
 
     y_pred = model.predict(X_test)
+
+    exp = pred.makeExplanation(model, X_test)
     
-    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
+    desc, frauds, stats = evalModel(y_pred, X_test, y_test, exp, raw_test)
 
     return 1, desc, frauds, stats
 
 
-def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test):
+def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test, raw_test):
 
     pipeline = Pipeline(steps=[
         ('smote', SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])),
@@ -98,8 +123,8 @@ def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test):
 
     pipeline.fit(X_train, y_train)
 
-    model_path = f"app/models/{train_data['model_name']}.sav"
-    joblib.dump(pipeline, model_path)
+    model_path = f"app/models/{train_data['model_name']}.ubj"
+    pipeline.named_steps['model'].save_model(model_path)
 
     wr.updateModelRegistry(
         train_data['model_name'], 
@@ -111,12 +136,14 @@ def trainXGBSMOTE(train_data, X_train, X_test, y_train, y_test):
     )
 
     y_pred = pipeline.predict(X_test)
+
+    exp = pred.makeExplanation(pipeline.named_steps['model'], X_test)
     
-    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
+    desc, frauds, stats = evalModel(y_pred, X_test, y_test, exp, raw_test)
 
     return 1, desc, frauds, stats
 
-def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test):
+def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test, raw_test):
     
     print(upgrade_data['model_path'])
 
@@ -155,13 +182,16 @@ def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test):
     )
 
     y_pred = model.predict(X_test)
-    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
+
+    exp = pred.makeExplanation(model, X_test)
+    
+    desc, frauds, stats = evalModel(y_pred, X_test, y_test, exp, raw_test)
 
     return 1, desc, frauds, stats
 
 
 
-def trainEnsemble(train_data, X_train, X_test, y_train, y_test):
+def trainEnsemble(train_data, X_train, X_test, y_train, y_test, raw_test):
 
     smote = SMOTE(sampling_strategy=train_data["hyperparameters"]["smote_sampling_strategy"])
 
@@ -200,15 +230,15 @@ def trainEnsemble(train_data, X_train, X_test, y_train, y_test):
     )
 
     y_pred = stack.predict(X_test)
+
+    exp = pred.makeExplanation(stack.estimators_[1], X_test)
     
-    desc, frauds, stats = eval_model(y_pred, X_test, y_test)
+    desc, frauds, stats = evalModel(y_pred, X_test, y_test, exp, raw_test)
+    
 
     return 1, desc, frauds, stats
 
-
-def eval_model(y_pred, X_test, y_test):
-
-
+def evalModel(y_pred, X_test, y_test, exp, raw_test=None):
 
     fraud_count = int((y_pred == 1).sum())
     legit_count = int((y_pred == 0).sum())
@@ -223,25 +253,19 @@ def eval_model(y_pred, X_test, y_test):
         "total_records": len(X_test),
         "frauds_detected": fraud_count,
         "legitimate": legit_count,
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1
+        "feature_importance": exp
     }
 
     stats = [
-        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1
+        len(X_test), fraud_count, legit_count, cm, accuracy, precision, recall, f1, exp
     ]
 
-    try:
-        dfRaw = pd.read_csv("./resources/data/Input.csv", delimiter = ',', nrows = 20000)
-    except Exception as e:
-        return 0, [f"Failed to read CSV file: {str(e)}"], [], None
+    if raw_test is not None:
+        X_eval = raw_test.copy()
+    else:
+        X_eval = X_test.copy()
 
-    dfRaw['prediction'] = y_pred
-    fraud_count = int((dfRaw["prediction"] == 1).sum())
-    legit_count = int((dfRaw["prediction"] == 0).sum())
-
-    frauds = dfRaw[dfRaw["prediction"] == 1]
+    X_eval['prediction'] = y_pred
+    frauds = X_eval[X_eval['prediction'] == 1]
 
     return desc, frauds.to_dict(orient='records'), stats

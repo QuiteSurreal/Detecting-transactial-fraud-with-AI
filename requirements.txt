@@ -11,3 +11,4 @@ pydantic
 uvicorn
 pytest
 python-multipart
+shap

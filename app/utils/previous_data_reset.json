@@ -11,7 +11,7 @@
         "F1": 0
     },
     {
-        "id": "xgboost without SMOTE",
+        "id": "XGBoost without SMOTE",
         "records": 0,
         "frauds": 0,
         "legit": 0,
@@ -22,7 +22,7 @@
         "F1": 0
     },
     {
-        "id": "xgboost with SMOTE",
+        "id": "XGBoost with SMOTE",
         "records": 0,
         "frauds": 0,
         "legit": 0,

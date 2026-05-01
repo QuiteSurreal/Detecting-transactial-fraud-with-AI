@@ -83,13 +83,13 @@ def test_get_status():
     tasks_file = "app/utils/tasks.json"
     with open(tasks_file, "r") as f:
         tasks = json.load(f)
-    tasks.append({"id": task_id, "status": "PENDING"})
+    tasks.append({"id": task_id, "status": "SUCCESS", "desc": ""})
     with open(tasks_file, "w") as f:
         json.dump(tasks, f)
 
     response = client.get(f"/status/{task_id}")
     assert response.status_code == 200
-    assert response.json() == "PENDING"
+    assert response.json() == "SUCCESS"
 
 def test_predict_file():
     """Test POST /predict/file endpoint - successful prediction"""
@@ -158,6 +158,11 @@ def test_train():
     assert task_data["status"] == "SUCCESS"
     assert "desc" in task_data
 
+    response = client.get("/models")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["test_model"] != None
+
 def test_upgrade_upgradable():
     """Test POST /upgrade endpoint"""
     file_path = "resources/data/Input.csv"
@@ -178,6 +183,11 @@ def test_upgrade_upgradable():
     assert "desc" in task_data
     assert "frauds" in task_data
     assert isinstance(task_data["frauds"], list)
+
+    response = client.get("/models")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["XGBoost with SMOTE_upgraded"] != None
 
 def test_upgrade_upgradable_non_upgradable():
     """Test POST /upgrade endpoint"""

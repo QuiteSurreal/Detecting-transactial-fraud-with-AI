@@ -49,6 +49,7 @@ function loadTasks() {
                 rowHTML = `
                 <td>${task.id}</td>
                 <td>${statusBadge}</td>
+                <td> </td>
                 `;
               }
 
@@ -71,6 +72,13 @@ function loadTasks() {
             const tableBody = document.getElementById('tasks-table-body');
             tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error loading tasks</td></tr>';
           });
+      }
+
+      function cancelTask(taskId) {
+        fetch(`/cancel/${taskId}`, { method: 'POST' })
+          .then(response => response.json())
+          .then(() => loadTasks())
+          .catch(error => console.error('Error cancelling task:', error));
       }
 
       document.addEventListener('DOMContentLoaded', loadTasks);

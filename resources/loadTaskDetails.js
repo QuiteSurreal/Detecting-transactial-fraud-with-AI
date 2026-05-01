@@ -16,6 +16,7 @@ function loadTaskDetails() {
         const fraudsDetected = data.desc?.frauds_detected;
         const anomaliesDetected = data.desc?.anomalies_detected;
         const legitimateEntries = data.desc?.legitimate;
+        const featureImportance = data.desc?.feature_importance;
         const normalEntries = data.desc?.normal;
         const clusters = data.desc?.clusters;
 
@@ -23,10 +24,16 @@ function loadTaskDetails() {
               <li><strong>Total Records:</strong> ${totalRecords}</li>
         `;
 
+        
+
         if (fraudsDetected !== undefined) {
+          featureList = Object.keys(featureImportance).map(f => {
+                return `<li><strong>${f}</strong></li>`;
+            }).join('');
           statisticsHtml += `
               <li><strong>Frauds Detected:</strong> ${fraudsDetected}</li>
               <li><strong>Legitimate Entries:</strong> ${legitimateEntries ?? 0}</li>
+              <li><strong>Feature Importance:</strong> <ol>${featureList}</ol></li>
           `;
         } else if (anomaliesDetected !== undefined) {
           statisticsHtml += `

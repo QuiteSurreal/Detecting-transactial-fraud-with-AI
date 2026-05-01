@@ -44,7 +44,7 @@ def preprocessFile(data, model_name):
     
 
     try:
-        y_pred = pred.runPrediction(model_name, df)
+        y_pred, exp = pred.runPrediction(model_name, df)
     except Exception as e:
         return 0, [f"Error running prediction: {str(e)}"], [], None
 
@@ -58,7 +58,8 @@ def preprocessFile(data, model_name):
         desc = {
             "total_records": len(dfRaw),
             "frauds_detected": fraud_count,
-            "legitimate": legit_count
+            "legitimate": legit_count,
+            "feature_importance": exp
         }
 
         stats = None
@@ -69,7 +70,7 @@ def preprocessFile(data, model_name):
             recall = recall_score(y_true, y_pred)
             f1 = f1_score(y_true, y_pred)
             stats = [
-                len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1
+                len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1, exp
             ]
 
         return 1, desc, frauds.to_dict(orient='records'), stats
@@ -111,24 +112,6 @@ def preprocess(df: pd.DataFrame, model_name):
 
     return df
 
-def preprocessForTrain(data):
-    try:
-        dfRaw = pd.read_csv(data, delimiter=',', nrows=100000)
-    except Exception as e:
-        return None, [f"Failed to read CSV file: {str(e)}"]
-    
-    if 'isFraud' not in dfRaw.columns:
-        return None, ["Missing 'isFraud' column in training data"]
-    
-    y = dfRaw['isFraud'].values
-    df = dfRaw.drop('isFraud', axis=1)
-    
-    errors = validateData(df)
-    if errors:
-        return None, errors
-    
-    df = preprocess(df, "xgb")
-    return df, y
 
 
 def validateData(data: pd.DataFrame):

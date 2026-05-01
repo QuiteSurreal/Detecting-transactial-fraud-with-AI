@@ -16,18 +16,3 @@ resources/data/Preprocessed_input.csv
 # Reset files in app/utils/
 app/utils/model_registry_reset.json
 app/utils/previous_data_reset.json
-
-# Static resources
-resources/loadModels.js
-resources/loadStatsData.js
-resources/loadTaskDetails.js
-resources/loadTasks.js
-resources/loadTrain.js
-resources/style.css
-
-# Templates
-templates/index.html
-templates/stats.html
-templates/taskDetails.html
-templates/tasks.html
-templates/train.html
