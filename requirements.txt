@@ -12,3 +12,4 @@ uvicorn
 pytest
 python-multipart
 shap
+portalocker
