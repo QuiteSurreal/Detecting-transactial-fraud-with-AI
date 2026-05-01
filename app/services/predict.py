@@ -21,8 +21,7 @@ def runPrediction(model_name, df: pd.DataFrame):
         return runUnsupervisedPrediction(df)
     else:
         model, is_ens = loadModel(model_name)
-        y_scores = model.predict_proba(df)
-        result = (y_scores[:, 1] >= 0.8105).astype(int)
+        result = model.predict(df)
         if (is_ens):
             model = model = model.estimators_[1]
         exp = makeExplanation(model, df)
@@ -82,8 +81,6 @@ def makeExplanation(model, df):
     features = df.columns
 
     importance = dict(zip(features, shap_values[0].tolist()))
-
-    print(importance)
 
     return dict(sorted(importance.items(), key=lambda x: abs(x[1]), reverse=True))
 

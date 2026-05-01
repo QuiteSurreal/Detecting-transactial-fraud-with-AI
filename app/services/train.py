@@ -25,7 +25,7 @@ from io import StringIO
 
 def prepareTrain(train_data, selected_model, mode, file_data=None):
     """
-    Orchestrates the training pipeline: loads data, preprocesses, splits, and delegates to appropriate trainer.
+    Loads data, preprocesses, splits, and delegates to appropriate trainer.
     
     Args:
         train_data (dict): Configuration with model_name and hyperparameters
@@ -190,7 +190,6 @@ def upgradeXGB(upgrade_data, X_train, X_test, y_train, y_test, raw_test):
     Returns:
         tuple: (success, desc, frauds, stats) or (0, [error], [], None) on failure
     """
-    print(upgrade_data['model_path'])
 
 
     try:

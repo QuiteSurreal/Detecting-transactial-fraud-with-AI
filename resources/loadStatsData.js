@@ -110,6 +110,8 @@ function loadStatsData() {
       img.onload = function() {
         placeholder.style.display = 'none';
         img.style.display = 'block';
+        img.style.marginLeft = 'auto';
+        img.style.marginRight = 'auto';
       };
       img.onerror = function() {
         placeholder.style.display = 'flex';

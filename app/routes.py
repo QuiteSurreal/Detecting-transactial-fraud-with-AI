@@ -95,8 +95,11 @@ def getModels():
 
 @app.get("/tasks/data")
 def getTasksData(task_id: str = None):
-    with open("app/utils/tasks.json") as f:
-        DATA = json.load(f)
+    try:
+        with open("app/utils/tasks.json") as f:
+            DATA = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"File is currently being updated")
     
     if task_id:
         for task in DATA:

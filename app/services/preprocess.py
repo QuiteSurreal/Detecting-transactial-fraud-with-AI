@@ -76,9 +76,9 @@ def preprocessFile(data, model_name):
         if (y_true is not None):
             cm = confusion_matrix(y_true, y_pred).tolist()
             accuracy = accuracy_score(y_true, y_pred)
-            precision = precision_score(y_true, y_pred)
-            recall = recall_score(y_true, y_pred)
-            f1 = f1_score(y_true, y_pred)
+            precision = precision_score(y_true, y_pred, zero_division=0)
+            recall = recall_score(y_true, y_pred, zero_division=0)
+            f1 = f1_score(y_true, y_pred, zero_division=0)
             stats = [
                 len(dfRaw), fraud_count, legit_count, cm, accuracy, precision, recall, f1, exp
             ]
